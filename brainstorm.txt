@@ -1,0 +1,25 @@
+import math;
+import iters;
+
+def big_chungus(x: int32) -> int32 {
+    print(`X is {x}`);
+    return math.factorial(x);
+}
+
+def main() {
+    user_name: string = input("What's your name? ");
+    age: int32 = int32(input("What's your age? "));
+
+    print(`You are {name} and you're {age} years old.`); // Comment here
+
+    if age >= 18 {
+        print(":sus:");
+    else {
+        exit(1);
+    }
+
+    primes: int32[] = [2, 3, 5, 7, 11];
+    for i, prime in iters.enumerate(primes) {
+        print(`Prime {i}: {prime}`);
+    }
+}

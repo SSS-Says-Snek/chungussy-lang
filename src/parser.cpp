@@ -29,21 +29,20 @@ Token Parser::eat_token() {
     return tokens[tokens_idx++];
 }
 
-std::unique_ptr<ExprAST> Parser::parse_identifier() {
+std::shared_ptr<ExprAST> Parser::parse_identifier() {
     Token token = eat_token();
 
     if (token.value.symbol_type != Symbol::OPEN_PARENTHESES) {
-        return std::make_unique<VariableAST>(token.value.identifier);
+        return std::make_shared<VariableAST>(token.value.identifier);
     }
 }
 
-std::unique_ptr<ExprAST> Parser::parse_parentheses() {
+std::shared_ptr<ExprAST> Parser::parse_parentheses() {
     // Eat '('
     eat_token();
-    std::unique_ptr<ExprAST> expr = parse_expression();
+    std::shared_ptr<ExprAST> expr = parse_expression();
 
     // Eat ')' if it's there, otherwise do something >:(
-    std::cout << stringify(current_token().type) << current_token().value.uint64;
     if (current_token().value.symbol_type != Symbol::CLOSE_PARENTHESES) {
         std::cout << "L";
     }
@@ -51,7 +50,7 @@ std::unique_ptr<ExprAST> Parser::parse_parentheses() {
     return expr;
 }
 
-std::unique_ptr<ExprAST> Parser::parse_bin_op(int min_op_precedence, std::unique_ptr<ExprAST> lhs) {
+std::shared_ptr<ExprAST> Parser::parse_bin_op(int min_op_precedence, std::shared_ptr<ExprAST> lhs) {
     while (true) {
         Token op = current_token();
         int op_precedence = get_op_precedence(op.value.operator_type);
@@ -62,31 +61,31 @@ std::unique_ptr<ExprAST> Parser::parse_bin_op(int min_op_precedence, std::unique
         std::cout << "Binary op: " << stringify(op.value.operator_type) << '\n';
 
         eat_token();
-        std::unique_ptr<ExprAST> rhs = parse_primary();
+        std::shared_ptr<ExprAST> rhs = parse_primary();
 
         int next_op_precedence = get_op_precedence(current_token().value.operator_type);
         if (op_precedence < next_op_precedence) {
             rhs = parse_bin_op(min_op_precedence + 1, std::move(rhs));
         }
 
-        lhs = std::make_unique<BinaryExprAST>(op.value.operator_type, std::move(lhs), std::move(rhs));
+        lhs = std::make_shared<BinaryExprAST>(op.value.operator_type, std::move(lhs), std::move(rhs));
     }
 }
 
-std::unique_ptr<ExprAST> Parser::parse_literal() {
+std::shared_ptr<ExprAST> Parser::parse_literal() {
     Token token = eat_token();
 
     switch (token.type) {
         case TokenType::INT64:
-            return std::make_unique<LiteralAST>(token.value.int64);
+            return std::make_shared<LiteralAST>(token.value.int64);
         case TokenType::UINT64:
-            return std::make_unique<LiteralAST>(token.value.uint64);
+            return std::make_shared<LiteralAST>(token.value.uint64);
         case TokenType::FLOAT64:
-            return std::make_unique<LiteralAST>(token.value.float64);
+            return std::make_shared<LiteralAST>(token.value.float64);
     }
 }
 
-std::unique_ptr<ExprAST> Parser::parse_primary() {
+std::shared_ptr<ExprAST> Parser::parse_primary() {
     Token token = current_token();
     switch (token.type) {
         case TokenType::IDENTIFIER:
@@ -102,8 +101,8 @@ std::unique_ptr<ExprAST> Parser::parse_primary() {
     }
 }
 
-std::unique_ptr<ExprAST> Parser::parse_expression() {
-    std::unique_ptr<ExprAST> lhs = parse_primary();
+std::shared_ptr<ExprAST> Parser::parse_expression() {
+    std::shared_ptr<ExprAST> lhs = parse_primary();
 
     return parse_bin_op(0, std::move(lhs));
 }

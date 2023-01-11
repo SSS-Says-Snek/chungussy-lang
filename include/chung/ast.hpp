@@ -4,7 +4,19 @@
 
 #include "chung/token.hpp"
 
-class ExprAST {
+class AST {
+public:
+    virtual ~AST() = default;
+    virtual std::string stringify(size_t indent_level = 0) = 0;
+};
+
+class StmtAST: public AST {
+public:
+    virtual ~StmtAST() = default;
+    virtual std::string stringify(size_t indent_level = 0) = 0;
+};
+
+class ExprAST: public AST {
 public:
     virtual ~ExprAST() = default;
     virtual std::string stringify(size_t indent_level = 0) = 0;
@@ -13,10 +25,10 @@ public:
 class BinaryExprAST: public ExprAST {
 public:
     Operator op;
-    std::unique_ptr<ExprAST> lhs;
-    std::unique_ptr<ExprAST> rhs;
+    std::shared_ptr<ExprAST> lhs;
+    std::shared_ptr<ExprAST> rhs;
 
-    BinaryExprAST(Operator op, std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs):
+    BinaryExprAST(Operator op, std::shared_ptr<ExprAST> lhs, std::shared_ptr<ExprAST> rhs):
         op{op}, lhs{std::move(lhs)}, rhs{std::move(rhs)} {}
     
     std::string stringify(size_t indent_level);
@@ -45,4 +57,9 @@ public:
     VariableAST(const std::string& name): name{name} {}
 
     std::string stringify(size_t indent_level = 0);
+};
+
+class AssignAST: public StmtAST {
+    std::string name;
+    std::shared_ptr<ExprAST> expr;
 };

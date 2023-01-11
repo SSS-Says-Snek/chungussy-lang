@@ -1,11 +1,10 @@
 #include <string>
 #include <cwctype>
-#include <algorithm>
-#include <iterator>
 #include <iostream>
 #include <vector>
 
 #include "chung/lexer.hpp"
+#include "chung/stringify.hpp"
 
 #define HANDLE_OP(op, op_name)                                                   \
     case op_name:                                                                \
@@ -20,15 +19,6 @@
         tokens.push_back(Token{TokenType::SYMBOL, value, cursor, cursor + 1}); \
         advance();                                                             \
         break;                                                                 \
-
-
-std::string u32tostring(const std::u32string& s) {
-    std::string out;
-    std::transform(begin(s), end(s), back_inserter(out), [](char32_t c) {
-        return c < 128 ? static_cast<char>(c) : '?';
-    });
-    return out;
-}
 
 bool is_identifier_char(char32_t c) {
     if (std::iswalpha(c) || c == '_') {
@@ -68,11 +58,13 @@ std::vector<Token> Lexer::lex() {
                 advance();
             }
 
-            value.identifier = u32tostring(source.substr(start, cursor - start));
+            value.identifier = stringify(source.substr(start, cursor - start));
             TokenType type;
 
             if (value.identifier == "def") {
                 type = TokenType::DEF;
+            } else if (value.identifier == "let") {
+                type = TokenType::LET;
             } else {
                 type = TokenType::IDENTIFIER;
             }
@@ -85,11 +77,11 @@ std::vector<Token> Lexer::lex() {
             }
 
             char32_t suffix = peek();
-            std::string token_string = u32tostring(source.substr(start, cursor - start));
+            std::string token_string = stringify(source.substr(start, cursor - start));
             TokenType type;
 
             switch (suffix) {
-                case 'U' | 'u':
+                case 'U' | 'u': // Unsigned
                     try {
                         value.uint64 = std::stoull(token_string);
                         type = TokenType::UINT64;
@@ -99,6 +91,25 @@ std::vector<Token> Lexer::lex() {
                         std::cout << "L";
                     }
                     break;
+
+                case '.': { // Floating point
+                    size_t decimal_start = cursor;
+                    advance();
+                    while (std::iswdigit(peek())) {
+                        advance();
+                    }
+                    std::string float_string = token_string + stringify(source.substr(decimal_start, cursor - decimal_start));
+
+                    try {
+                        value.float64 = std::stod(float_string);
+                        type = TokenType::FLOAT64;
+                    } catch (...) {
+                        // L
+                        std::cout << "L";
+                    }
+                    break;
+                }
+
                 default:
                     try {
                         value.int64 = std::stoll(token_string);
@@ -114,14 +125,17 @@ std::vector<Token> Lexer::lex() {
         } else {
             switch (peek()) {
                 case '/':
-                    if (advance() == '/') {
-                        //std::cout << "OMG it's a comment";
+                    if (advance() == '/') { // Comment
                         advance();
                         while (peek() != '\0') {
                             if (advance() == '\n') {
                                 break;
                             }
                         }
+                    } else { // Division
+                        value.operator_type = Operator::DIV;
+                        tokens.push_back(Token{TokenType::OPERATOR, value, cursor, cursor + 1});
+                        advance();
                     }
                     break;
 

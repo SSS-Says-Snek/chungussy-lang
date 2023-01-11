@@ -22,7 +22,7 @@ enum class Symbol {
 enum class TokenType {
     EOF, INVALID,
 
-    DEF,
+    DEF, LET,
     IDENTIFIER,
     OPERATOR,
     SYMBOL,

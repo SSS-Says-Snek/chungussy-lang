@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <iterator>
+
 #include "chung/stringify.hpp"
 
 inline std::string indent(size_t indent_level) {
@@ -7,6 +10,15 @@ inline std::string indent(size_t indent_level) {
     }
 
     return indentation;
+}
+
+// Goofy rn
+std::string stringify(const std::u32string& s) {
+    std::string out;
+    std::transform(begin(s), end(s), back_inserter(out), [](char32_t c) {
+        return c < 128 ? static_cast<char>(c) : '?';
+    });
+    return out;
 }
 
 std::string stringify(const Operator& op) {
@@ -21,7 +33,7 @@ std::string stringify(const Operator& op) {
 
 std::string stringify(const TokenType& type) {
     static const char *token_type_names[] = {
-        "EndOfFile", "Invalid", "Def", "Identifier", "Operator", "Symbol",
+        "EndOfFile", "Invalid", "Def", "Let", "Identifier", "Operator", "Symbol",
         "UInt64", "Int64", "Float64"
     };
     return token_type_names[static_cast<int>(type)];
@@ -51,7 +63,11 @@ std::string LiteralAST::stringify(size_t indent_level) {
 
     switch (value_type) {
         case ValueType::INT64:
-            return indentation + "Integer64: " + std::to_string(int64);
+            return indentation + "Int64: " + std::to_string(int64);
+        case ValueType::UINT64:
+            return indentation + "UInt64: " + std::to_string(uint64);
+        case ValueType::FLOAT64:
+            return indentation + "Float64: " + std::to_string(float64);
     }
 }
 

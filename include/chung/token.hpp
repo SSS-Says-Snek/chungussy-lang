@@ -22,10 +22,11 @@ enum class Symbol {
 enum class TokenType {
     EOF, INVALID,
 
-    DEF, LET,
     IDENTIFIER,
     OPERATOR,
     SYMBOL,
+
+    DEF, LET, __OMG,
 
     UINT64,
     INT64,
@@ -34,8 +35,8 @@ enum class TokenType {
 
 struct TokenVal {
     union {
-        Operator operator_type;
-        Symbol symbol_type;
+        Operator op;
+        Symbol symbol;
         uint64_t uint64;
         int64_t int64;
         double float64;
@@ -51,9 +52,15 @@ struct Token {
     size_t beg;
     size_t end;
 
+    size_t line_beg;
+    size_t line_end;
+
+    size_t line;
+    size_t column;
+
     Token(TokenType type, size_t beg, size_t end):
-        type{type}, beg{beg}, end{end} {}
+        type{type}, beg{beg}, end{end}, line{0}, column{0} {}
     Token(TokenType type, TokenVal value, size_t beg, size_t end):
-        type{type}, value{value}, beg{beg}, end{end} {}
+        type{type}, value{value}, beg{beg}, end{end}, line{0}, column{0} {}
 };
 

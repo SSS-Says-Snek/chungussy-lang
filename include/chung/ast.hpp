@@ -22,6 +22,41 @@ public:
     virtual std::string stringify(size_t indent_level = 0) = 0;
 };
 
+class VarDeclareAST: public StmtAST {
+public:
+    std::string name;
+    std::shared_ptr<ExprAST> expr;
+
+    VarDeclareAST(const std::string& name, std::shared_ptr<ExprAST> expr): name{name}, expr{std::move(expr)} {}
+
+    std::string stringify(size_t indent_level = 0);
+};
+
+class FunctionAST: public StmtAST {
+public:
+    std::string name;
+    std::vector<VarDeclareAST> parameters;
+    std::vector<std::shared_ptr<AST>> body;
+};
+
+class OmgAST: public StmtAST {
+public:
+    std::shared_ptr<ExprAST> expr;
+
+    OmgAST(std::shared_ptr<ExprAST> expr): expr{std::move(expr)} {}
+
+    std::string stringify(size_t indent_level = 0);
+};
+
+class ExprStmtAST: public StmtAST {
+public:
+    std::shared_ptr<ExprAST> expr;
+
+    ExprStmtAST(std::shared_ptr<ExprAST> expr): expr{std::move(expr)} {}
+
+    std::string stringify(size_t indent_level = 0);
+};
+
 class BinaryExprAST: public ExprAST {
 public:
     Operator op;
@@ -34,18 +69,29 @@ public:
     std::string stringify(size_t indent_level);
 };
 
-class LiteralAST: public ExprAST {
+class CallAST: public ExprAST {
+public:
+    std::string callee;
+    std::vector<VarDeclareAST> arguments;
+
+    CallAST(const std::string& callee, std::vector<VarDeclareAST> arguments):
+        callee{callee}, arguments{std::move(arguments)} {}
+};
+
+class PrimitiveAST: public ExprAST {
 public:
     union {
         int64_t int64;
         uint64_t uint64;
         double float64;
     };
-    enum ValueType {INT64, UINT64, FLOAT64} value_type;
+    enum ValueType {INVALID, INT64, UINT64, FLOAT64, NONE} value_type;
 
-    LiteralAST(int64_t int64): int64{int64}, value_type{ValueType::INT64} {}
-    LiteralAST(uint64_t uint64): uint64{uint64}, value_type{ValueType::UINT64} {}
-    LiteralAST(double float64): float64{float64}, value_type{ValueType::FLOAT64} {}
+    PrimitiveAST(): value_type{ValueType::INVALID} {}
+    PrimitiveAST(int64_t int64): int64{int64}, value_type{ValueType::INT64} {}
+    PrimitiveAST(uint64_t uint64): uint64{uint64}, value_type{ValueType::UINT64} {}
+    PrimitiveAST(double float64): float64{float64}, value_type{ValueType::FLOAT64} {}
+    PrimitiveAST(std::nullptr_t): value_type{ValueType::NONE} {}
 
     std::string stringify(size_t indent_level = 0);
 };
@@ -57,9 +103,4 @@ public:
     VariableAST(const std::string& name): name{name} {}
 
     std::string stringify(size_t indent_level = 0);
-};
-
-class AssignAST: public StmtAST {
-    std::string name;
-    std::shared_ptr<ExprAST> expr;
 };

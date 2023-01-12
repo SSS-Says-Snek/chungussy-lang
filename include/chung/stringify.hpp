@@ -4,6 +4,7 @@
 
 #include "chung/ast.hpp"
 
-std::string stringify(const std::u32string& s);
-std::string stringify(const Operator& op);
+std::string stringify(const Operator& op, bool verbose = false);
+std::string stringify(const Symbol& op, bool verbose = false);
 std::string stringify(const TokenType& op);
+std::string stringify(const Token& token);

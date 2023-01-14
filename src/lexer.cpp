@@ -207,7 +207,7 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
         if (source[i] == '\n') {
             column = 0;
             line++;
-            line_idx = i;
+            line_idx = i + 1;
         }
         
         if (tokens[token_idx].beg == i) {

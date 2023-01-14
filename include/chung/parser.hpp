@@ -32,6 +32,20 @@ public:
         return tokens[tokens_idx];
     }
 
+    inline Token previous_token() {
+        if (tokens_idx == 0) {
+            return tokens[0];
+        }
+        return tokens[tokens_idx - 1];
+    }
+
+    inline Token next_token() {
+        if (tokens_idx >= tokens.size()) {
+            return tokens[tokens.size() - 1];
+        }
+        return tokens[tokens_idx + 1];
+    }
+
     inline Token eat_token() {
         if (tokens_idx >= tokens.size()) {
             return tokens[tokens.size() - 1];
@@ -39,8 +53,10 @@ public:
         return tokens[tokens_idx++];
     }
 
-    inline void push_exception(const std::string& exception_message, const Token& token) {
-        exceptions.push_back(ParseException{exception_message, token, u32tostring(source_lines[token.line - 1])});
+    inline ParseException push_exception(const std::string& exception_message, const Token& token) {
+        ParseException exception{exception_message, token, u32tostring(source_lines[token.line - 1])};
+        exceptions.push_back(exception);
+        return exception;
     }
 
     void synchronize();

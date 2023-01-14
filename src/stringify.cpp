@@ -61,6 +61,9 @@ std::string stringify(const Token& token) {
     switch (token.type) {
         case TokenType::EOF:
             return "EOF";
+        case TokenType::LET:
+            return "Let";
+
         case TokenType::IDENTIFIER:
             return token.value.identifier;
         case TokenType::OPERATOR:
@@ -81,20 +84,22 @@ std::string stringify(const Token& token) {
 }
 
 std::string AST::stringify(size_t indent_level) {
-    return indent(indent_level) + "You suck why do you have the base class here go away";
+    // OOF
+    return indent(indent_level) + "Goofy ASF AST";
 }
 
 std::string StmtAST::stringify(size_t indent_level) {
-    return indent(indent_level) + "You suck why do you have the stmt base class here go away";
+    return indent(indent_level) + "Goofy statement";
 }
 
 std::string ExprAST::stringify(size_t indent_level) {
-    return indent(indent_level) + "You suck why do you have the expr base class here go away";
+    return indent(indent_level) + "Goofy expression";
 }
 
 std::string VarDeclareAST::stringify(size_t indent_level) {
+    std::cout << "Yum 1";
     std::string indentation = indent(indent_level);
-    std::string string{indentation + "Variable Assignment:"};
+    std::string string{indentation + "Variable Declaration:"};
 
     string += "\n\t" + indentation + "Name: " + name;
     string += "\n\t" + indentation + "Value:\n" + expr->stringify(indent_level + 2);
@@ -103,6 +108,7 @@ std::string VarDeclareAST::stringify(size_t indent_level) {
 }
 
 std::string OmgAST::stringify(size_t indent_level) {
+    std::cout << "Yum 11";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Secret OMG:"};
 
@@ -112,6 +118,7 @@ std::string OmgAST::stringify(size_t indent_level) {
 }
 
 std::string ExprStmtAST::stringify(size_t indent_level) {
+    std::cout << "Yum 1111";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Expression Statement:"};
     
@@ -120,6 +127,7 @@ std::string ExprStmtAST::stringify(size_t indent_level) {
 }
 
 std::string BinaryExprAST::stringify(size_t indent_level) {
+    std::cout << "Yum111111";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Binary Operation:"};
 

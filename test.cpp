@@ -1,14 +1,22 @@
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
 #include "chung/utf.hpp"
+#include "chung/stringify.hpp"
+
+#include "chung/codegen.hpp"
 
 int main() {
     // std::u32string code{U"6 * (4.0 + 8) - (69420 * (3 + (1 + 1)))"};
     // std::u32string code{U"let e = 64 + 133 - 2 * 3\nlet sus = 43408637547754347534753737337454774353573454754375"};
-    std::u32string code{U"let sus = 1 + (2 + 3;\nlet sussy = 6940603203967203760730760376033726023760;"};
+
+    std::u32string code{U"let a = 6 + 9;"};
     Lexer lexer{code};
 
     auto [tokens, exceptions] = lexer.lex();
+
+    for (auto& token: tokens) {
+        std::cout << '|' << stringify(token) << "| ";
+    }
 
     std::cout << "\nLexer passes\n\n";
     std::cout << "\033[1;31m";
@@ -31,5 +39,6 @@ int main() {
 
     for (auto& statement: statements) {
         std::cout << statement->stringify() << '\n';
+        statement->codegen();
     }
 }

@@ -1,6 +1,19 @@
 #pragma once
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+
 #include <memory>
+#include <vector>
 
 #include "chung/token.hpp"
 
@@ -8,18 +21,21 @@ class AST {
 public:
     virtual ~AST() = default;
     virtual std::string stringify(size_t indent_level = 0) = 0;
+    virtual llvm::Value* codegen() = 0;
 };
 
 class StmtAST: public AST {
 public:
     virtual ~StmtAST() = default;
     virtual std::string stringify(size_t indent_level = 0) = 0;
+    virtual llvm::Value* codegen() = 0;
 };
 
 class ExprAST: public AST {
 public:
     virtual ~ExprAST() = default;
     virtual std::string stringify(size_t indent_level = 0) = 0;
+    virtual llvm::Value* codegen() = 0;
 };
 
 class VarDeclareAST: public StmtAST {
@@ -30,6 +46,7 @@ public:
     VarDeclareAST(const std::string& name, std::shared_ptr<ExprAST> expr): name{name}, expr{std::move(expr)} {}
 
     std::string stringify(size_t indent_level = 0);
+    llvm::Value* codegen();
 };
 
 class FunctionAST: public StmtAST {
@@ -46,6 +63,7 @@ public:
     OmgAST(std::shared_ptr<ExprAST> expr): expr{std::move(expr)} {}
 
     std::string stringify(size_t indent_level = 0);
+    llvm::Value* codegen();
 };
 
 class ExprStmtAST: public StmtAST {
@@ -55,6 +73,7 @@ public:
     ExprStmtAST(std::shared_ptr<ExprAST> expr): expr{std::move(expr)} {}
 
     std::string stringify(size_t indent_level = 0);
+    llvm::Value* codegen();
 };
 
 class BinaryExprAST: public ExprAST {
@@ -67,6 +86,7 @@ public:
         op{op}, lhs{std::move(lhs)}, rhs{std::move(rhs)} {}
     
     std::string stringify(size_t indent_level);
+    llvm::Value* codegen();
 };
 
 class CallAST: public ExprAST {
@@ -76,6 +96,8 @@ public:
 
     CallAST(const std::string& callee, std::vector<VarDeclareAST> arguments):
         callee{callee}, arguments{std::move(arguments)} {}
+    
+    llvm::Value* codegen();
 };
 
 class PrimitiveAST: public ExprAST {
@@ -94,6 +116,7 @@ public:
     PrimitiveAST(std::nullptr_t): value_type{ValueType::NONE} {}
 
     std::string stringify(size_t indent_level = 0);
+    llvm::Value* codegen();
 };
 
 class VariableAST: public ExprAST {
@@ -103,4 +126,5 @@ public:
     VariableAST(const std::string& name): name{name} {}
 
     std::string stringify(size_t indent_level = 0);
+    llvm::Value* codegen();
 };

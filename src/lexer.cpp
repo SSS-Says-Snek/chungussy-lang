@@ -73,19 +73,25 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                     advance();
                 }
 
-                value.identifier = u32tostring(source.substr(start, cursor - start));
+                std::string identifier = u32tostring(source.substr(start, cursor - start));
                 TokenType type;
 
-                if (value.identifier == "def") {
-                    type = TokenType::DEF;
-                } else if (value.identifier == "let") {
-                    type = TokenType::LET;
-                } else if (value.identifier == "__omg") {
-                    type = TokenType::__OMG;
+                if (is_keyword(identifier)) {
+                    type = TokenType::KEYWORD;
+
+                    if (identifier == "def") {
+                        value.keyword = Keyword::DEF;
+                    } else if (identifier == "let") {
+                        value.keyword = Keyword::LET;
+                    } else if (identifier == "__omg") {
+                        value.keyword = Keyword::__OMG;
+                    }
                 } else {
                     type = TokenType::IDENTIFIER;
+                    value.identifier = identifier;
                 }
-                tokens.push_back({type, value, start, cursor});
+                tokens.push_back(Token{type, value, start, cursor});
+
             } else if (std::iswdigit(peek())) {
                 size_t start = cursor;
                 advance();

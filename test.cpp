@@ -40,6 +40,8 @@ int main() {
 
     for (auto& statement: statements) {
         std::cout << statement->stringify() << '\n';
-        statement->codegen();
+        // statement->codegen();
     }
+
+    return 0;
 }

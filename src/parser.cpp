@@ -55,7 +55,7 @@ void Parser::synchronize() {
             return;
         } else {
             Token next = next_token();
-            if (next.type == TokenType::LET) {
+            if (next.type == TokenType::KEYWORD && next.value.keyword == Keyword::LET) {
                 // std::cout << "OMG";
                 return;
             }
@@ -124,6 +124,7 @@ std::shared_ptr<ExprAST> Parser::parse_primitive() {
 
     switch (token.type) {
         case TokenType::INT64:
+            std::cout << "OMG";
             return std::make_shared<PrimitiveAST>(token.value.int64);
         case TokenType::UINT64:
             return std::make_shared<PrimitiveAST>(token.value.uint64);
@@ -212,15 +213,19 @@ std::shared_ptr<ExprAST> Parser::parse_expression() {
 
 std::shared_ptr<StmtAST> Parser::parse_statement() {
     try {
-        switch (current_token().type) {
-            case TokenType::__OMG:
-                return parse_omg();
-            case TokenType::LET:
-                // std::cout << "AAA";
-                return parse_var_declaration();
+        Token token = current_token();
+        switch (token.type) {
+            case TokenType::KEYWORD:
+                if (token.value.keyword == Keyword::LET) {
+                    return parse_var_declaration();
+                } else if (token.value.keyword == Keyword::__OMG) {
+                    return parse_omg();
+                } else {
+                    std::cout << "You failed me.\n";
+                    return nullptr;
+                }
             
             default:
-                // std::cout << "BBBB";
                 return parse_expression_statement();
         }
     } catch (ParseException& exception) {
@@ -236,7 +241,7 @@ std::vector<std::shared_ptr<StmtAST>> Parser::parse() {
     while (current_token().type != TokenType::EOF) {
         std::shared_ptr<StmtAST> statement = parse_statement();
         if (statement) {
-            // std::cout << "Whoa" << statement->stringify();
+            std::cout << "Whoa" << statement->stringify();
             statements.push_back(statement);
         }
     }

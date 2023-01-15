@@ -13,7 +13,7 @@ inline std::string indent(size_t indent_level) {
 }
 
 std::string stringify(const Operator& op, bool verbose) {
-    static const char *op_names[] = {
+    static const char* op_names[] = {
         "Add", "Subtract", "Multiply", "Divide", "Modulo", "Power",
         "BitwiseAnd", "BitwiseOr", "BitwiseNot",
 
@@ -32,7 +32,7 @@ std::string stringify(const Operator& op, bool verbose) {
 }
 
 std::string stringify(const Symbol& symbol, bool verbose) {
-    static const char *symbol_names[] = {
+    static const char* symbol_names[] = {
         "OpenParentheses", "CloseParentheses", "OpenBrackets", "CloseBrackets",
         "OpenBraces", "CloseBraces",
         "Dot", "Comma", "Colon", "Semicolon"
@@ -48,10 +48,16 @@ std::string stringify(const Symbol& symbol, bool verbose) {
     return std::string{symbols[static_cast<int>(symbol)]};
 }
 
+std::string stringify(const Keyword& keyword) {
+    static const char* keyword_names[] = {
+        "Def", "Let", "__OMG"
+    };
+    return keyword_names[static_cast<int>(keyword)];
+}
+
 std::string stringify(const TokenType& type) {
-    static const char *token_type_names[] = {
-        "EndOfFile", "Invalid", "Identifier", "Operator", "Symbol",
-        "Def", "Let", "__Omg",
+    static const char* token_type_names[] = {
+        "EndOfFile", "Invalid", "Identifier", "Operator", "Symbol", "Keyword"
         "UInt64", "Int64", "Float64"
     };
     return token_type_names[static_cast<int>(type)];
@@ -61,8 +67,8 @@ std::string stringify(const Token& token) {
     switch (token.type) {
         case TokenType::EOF:
             return "EOF";
-        case TokenType::LET:
-            return "Let";
+        case TokenType::INVALID:
+            return "Invalid";
 
         case TokenType::IDENTIFIER:
             return token.value.identifier;
@@ -70,6 +76,8 @@ std::string stringify(const Token& token) {
             return ::stringify(token.value.op);
         case TokenType::SYMBOL:
             return ::stringify(token.value.symbol);
+        case TokenType::KEYWORD:
+            return ::stringify(token.value.keyword);
 
         case TokenType::INT64:
             return std::to_string(token.value.int64);
@@ -79,7 +87,7 @@ std::string stringify(const Token& token) {
             return std::to_string(token.value.float64);
         
         default:
-            return "unknown";
+            return "Unknown";
     }
 }
 

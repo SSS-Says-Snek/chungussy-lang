@@ -1,11 +1,5 @@
 #include "chung/codegen.hpp"
 
-void init_module() {
-    context = std::make_unique<llvm::LLVMContext>();
-    module = std::make_unique<llvm::Module>("OMG", *context);
-    builder = std::make_unique<llvm::IRBuilder<>>(*context);
-}
-
 llvm::Value* VariableAST::codegen() {}
 
 llvm::Value* VarDeclareAST::codegen() {

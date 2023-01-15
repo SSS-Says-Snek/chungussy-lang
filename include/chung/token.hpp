@@ -19,14 +19,17 @@ enum class Symbol {
     DOT, COMMA, COLON, SEMICOLON
 };
 
+enum class Keyword {
+    DEF, LET, __OMG
+};
+
 enum class TokenType {
     EOF, INVALID,
 
     IDENTIFIER,
     OPERATOR,
     SYMBOL,
-
-    DEF, LET, __OMG,
+    KEYWORD,
 
     UINT64,
     INT64,
@@ -37,6 +40,7 @@ struct TokenVal {
     union {
         Operator op;
         Symbol symbol;
+        Keyword keyword;
         uint64_t uint64;
         int64_t int64;
         double float64;
@@ -44,6 +48,7 @@ struct TokenVal {
 
     // L unions (I'm lazy to write a tagged one)
     std::string identifier;
+    std::u32string string;
 };
 
 struct Token {
@@ -64,3 +69,4 @@ struct Token {
         type{type}, value{value}, beg{beg}, end{end}, line{0}, column{0} {}
 };
 
+bool is_keyword(const std::string& identifier);

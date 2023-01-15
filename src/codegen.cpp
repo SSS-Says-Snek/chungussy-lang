@@ -7,7 +7,12 @@ void init_module() {
 }
 
 llvm::Value* VariableAST::codegen() {}
-llvm::Value* VarDeclareAST::codegen() {}
+
+llvm::Value* VarDeclareAST::codegen() {
+    // For now
+    return expr->codegen();
+}
+
 llvm::Value* OmgAST::codegen() {}
 
 llvm::Value* ExprStmtAST::codegen() {
@@ -23,25 +28,26 @@ llvm::Value* BinaryExprAST::codegen() {
     }
 
     switch (op) {
+        // TODO: Add type system (wow)
         case Operator::ADD:
-        std::cout << "A";
             lhs_code->getType()->print(llvm::outs());
+            return builder->CreateAdd(lhs_code, rhs_code);
     }
 }
 
 llvm::Value* PrimitiveAST::codegen() {
     switch (value_type) {
         case ValueType::INT64:
-            std::cout << "Int";
+            std::cout << "Int\n";
             return llvm::ConstantInt::get(*context, llvm::APInt{64, static_cast<uint64_t>(int64), true});
         case ValueType::UINT64:
-            std::cout << "Uint";
+            std::cout << "Uint\n";
             return llvm::ConstantInt::get(*context, llvm::APInt{64, uint64, false});
         case ValueType::FLOAT64:
-            std::cout << "Float";
+            std::cout << "Float\n";
             return llvm::ConstantFP::get(*context, llvm::APFloat{float64});
         default:
-            std::cout << "L";
+            std::cout << "L\n";
             return nullptr;
     }
 }

@@ -1,7 +1,7 @@
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
-#include "chung/utf.hpp"
 #include "chung/stringify.hpp"
+#include "chung/file.hpp"
 
 #include "chung/codegen.hpp"
 
@@ -9,7 +9,8 @@ int main() {
     // std::u32string code{U"6 * (4.0 + 8) - (69420 * (3 + (1 + 1)))"};
     // std::u32string code{U"let e = 64 + 133 - 2 * 3\nlet sus = 43408637547754347534753737337454774353573454754375"};
 
-    std::u32string code{U"let a = 6 + 9;"};
+    std::u32string code = read_source("test.chung");
+    std::cout << u32tostring(code);
     Lexer lexer{code};
 
     auto [tokens, exceptions] = lexer.lex();

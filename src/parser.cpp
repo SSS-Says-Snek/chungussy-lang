@@ -52,11 +52,13 @@ void Parser::synchronize() {
     while (current_token().type != TokenType::EOF) {
         Token prev = previous_token();
         if (prev.type == TokenType::SYMBOL && prev.value.symbol == Symbol::SEMICOLON) {
+            // std::cout << "Done synchronizing\n";
+            // std::cout << stringify(next_token());
             return;
         } else {
             Token next = next_token();
             if (next.type == TokenType::KEYWORD && next.value.keyword == Keyword::LET) {
-                // std::cout << "OMG";
+                // std::cout << "Done synchronizing\n";
                 return;
             }
         }
@@ -86,6 +88,9 @@ std::shared_ptr<ExprAST> Parser::parse_parentheses() {
     // Eat '('
     eat_token();
     std::shared_ptr<ExprAST> expr = parse_expression();
+    if (!expr) {
+        return nullptr;
+    }
 
     // Eat ')' if it's there, otherwise push exception
     if (current_token().value.symbol != Symbol::CLOSE_PARENTHESES) {
@@ -132,8 +137,8 @@ std::shared_ptr<ExprAST> Parser::parse_primitive() {
         default:
             // Invalid token
             throw push_exception("Invalid token in expression", token);
-            std::cout << token.beg << ' ' << token.end << '\n';
-            return std::make_shared<PrimitiveAST>();
+            // std::cout << token.beg << ' ' << token.end << '\n';
+            // return std::make_shared<PrimitiveAST>();
     }
 }
 
@@ -172,6 +177,9 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
 
         expr = parse_expression();
     }
+    if (!expr) {
+        return nullptr;
+    }
 
     Token token = eat_token();
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
@@ -187,6 +195,9 @@ std::shared_ptr<StmtAST> Parser::parse_omg() {
     eat_token();
 
     std::shared_ptr<ExprAST> expr = parse_expression();
+    if (!expr) {
+        return nullptr;
+    }
 
     Token token = eat_token();
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
@@ -203,12 +214,18 @@ std::shared_ptr<StmtAST> Parser::parse_expression_statement() {
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
         throw push_exception("Expected ';' after expression", token);
     }
+    if (!expr) {
+        return nullptr;
+    }
 
     return std::make_shared<ExprStmtAST>(expr);
 }
 
 std::shared_ptr<ExprAST> Parser::parse_expression() {
     std::shared_ptr<ExprAST> lhs = parse_primary();
+    if (!lhs) {
+        return nullptr;
+    }
 
     return parse_bin_op(0, std::move(lhs));
 }

@@ -1,2 +1,3 @@
-let e = 6 + 9;
+let e = 6 + 9
 let a;
+let b;

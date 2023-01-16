@@ -13,3 +13,9 @@ std::u32string read_source(const std::string& file_path) {
 
     return stringtou32(content_buffer.str());
 }
+
+// ... kind of. It just checks for accessability
+bool file_exists(const std::string& file_path) {
+    std::ifstream file{file_path};
+    return file.good();
+}

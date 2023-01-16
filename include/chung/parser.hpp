@@ -59,14 +59,11 @@ public:
         return exception;
     }
 
-    void synchronize();
+    inline std::vector<ParseException> get_exceptions() {
+        return exceptions;
+    }
 
-    // inline bool validate(const TokenType& token_type) {
-    //     if (current_token().type == TokenType::EOF) {
-    //         return false;
-    //     }
-    //     return current_token().type == token_type;
-    // }
+    void synchronize();
 
     std::shared_ptr<ExprAST> parse_identifier();
     std::shared_ptr<ExprAST> parse_parentheses();
@@ -86,7 +83,7 @@ public:
     // For now
     std::vector<std::shared_ptr<StmtAST>> parse();
 
-    // Public for now
+private:
     std::vector<Token> tokens;
     std::vector<std::u32string> source_lines;
     std::vector<ParseException> exceptions;

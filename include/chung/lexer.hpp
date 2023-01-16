@@ -32,8 +32,12 @@ public:
         return source[cursor];
     }
 
-    std::pair<std::vector<Token>, std::vector<LexException>> lex();
+    inline std::vector<std::u32string> get_source_lines() {
+        return source_lines;
+    }
 
+    std::pair<std::vector<Token>, std::vector<LexException>> lex();
+private:
     const std::u32string source;
     std::vector<std::u32string> source_lines;
     size_t cursor;

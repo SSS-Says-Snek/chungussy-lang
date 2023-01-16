@@ -26,12 +26,12 @@ int main() {
     }
     std::cout << "\033[0m\n";
 
-    Parser parser{tokens, lexer.source_lines};
+    Parser parser{tokens, lexer.get_source_lines()};
     auto statements = parser.parse();
     std::cout << "Parser passes\n\n";
 
     std::cout << "\033[1;31m";
-    for (auto& exception: parser.exceptions) {
+    for (auto& exception: parser.get_exceptions()) {
         std::cout << exception.write() << '\n';
     }
     std::cout << "\033[0m";

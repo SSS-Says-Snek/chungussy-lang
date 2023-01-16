@@ -124,7 +124,6 @@ std::shared_ptr<ExprAST> Parser::parse_primitive() {
 
     switch (token.type) {
         case TokenType::INT64:
-            std::cout << "OMG";
             return std::make_shared<PrimitiveAST>(token.value.int64);
         case TokenType::UINT64:
             return std::make_shared<PrimitiveAST>(token.value.uint64);
@@ -152,6 +151,9 @@ std::shared_ptr<ExprAST> Parser::parse_primary() {
             std::cout << "Primitive\n";
             return parse_primitive();
     }
+
+    // To satisfy clang
+    return nullptr;
 }
 
 std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
@@ -241,7 +243,7 @@ std::vector<std::shared_ptr<StmtAST>> Parser::parse() {
     while (current_token().type != TokenType::EOF) {
         std::shared_ptr<StmtAST> statement = parse_statement();
         if (statement) {
-            std::cout << "Whoa" << statement->stringify();
+            // std::cout << "Whoa" << statement->stringify();
             statements.push_back(statement);
         }
     }

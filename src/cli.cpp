@@ -25,7 +25,7 @@ void run_help() {
 }
 
 void run_parse(std::vector<std::string>& args) {
-    std::cout << "Running Chungussy " << chung_ver_string() << '\n';
+    std::cout << ANSI_BOLD << "Running Chungussy " << chung_ver_string() << '\n' << ANSI_RESET;
     if (args.size() != 2) {
         std::cerr << ANSI_RED << "Expected 1 argument, received " << args.size() - 1 << '\n' << ANSI_RESET;
         std::exit(1);
@@ -72,10 +72,12 @@ void run_parse(std::vector<std::string>& args) {
     if (!statements.empty()) {
         Context ctx{};
         setup_prelude(ctx);
-        std::cout << "Program AST\n";
+        std::cout << ANSI_BOLD << "Program AST\n" << ANSI_RESET;
         for (auto& statement: statements) {
             std::cout << statement->stringify() << '\n';
         }
+
+        std::cout << ANSI_BOLD << "\nModule IR (temporary trust me bro)\n" << ANSI_RESET;
         ctx.module->print(llvm::outs(), nullptr);
     }
 }

@@ -3,6 +3,7 @@
 #include "chung/file.hpp"
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
+#include "chung/library/prelude.hpp"
 
 #define CHUNG_VER_MAJOR 0
 #define CHUNG_VER_MINOR 0
@@ -67,10 +68,13 @@ void run_parse(std::vector<std::string>& args) {
     }
 
     if (!statements.empty()) {
+        Context ctx{};
+        setup_prelude(ctx);
         std::cout << "Program AST\n";
         for (auto& statement: statements) {
             std::cout << statement->stringify() << '\n';
         }
+        ctx.module->print(llvm::outs(), nullptr);
     }
 }
 

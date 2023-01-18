@@ -1,3 +1,1 @@
-let e = 6 + 9
-let a;
-let b;
+let e = add(6, 9);

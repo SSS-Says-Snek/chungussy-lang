@@ -148,20 +148,34 @@ std::string BinaryExprAST::stringify(size_t indent_level) {
     return string;
 }
 
+std::string CallAST::stringify(size_t indent_level) {
+    std::string indentation = indent(indent_level);
+    std::string string{indentation + "Call:"};
+
+    string += "\n\t" + indentation + "Name: " + callee;
+    string += "\n\t" + indentation + "Arguments:\n";
+    
+    for (size_t i = 0; i < arguments.size(); i++) {
+        string += indentation + "Argument " + std::to_string(i + 1) + ":\n" + arguments[i]->stringify(indent_level + 2);
+    }
+
+    return string;
+}
+
 std::string PrimitiveAST::stringify(size_t indent_level) {
     std::string indentation = indent(indent_level);
 
     switch (value_type) {
         case ValueType::INT64:
-            return indentation + "Int64: " + std::to_string(int64);
+            return indentation + "Int64: " + std::to_string(int64) + '\n';
         case ValueType::UINT64:
-            return indentation + "UInt64: " + std::to_string(uint64);
+            return indentation + "UInt64: " + std::to_string(uint64) + '\n';
         case ValueType::FLOAT64:
-            return indentation + "Float64: " + std::to_string(float64);
+            return indentation + "Float64: " + std::to_string(float64) + '\n';
         case ValueType::NONE:
-            return indentation + "None";
+            return indentation + "None\n";
         default:
-            return indentation + "Invalid";
+            return indentation + "Invalid\n";
     }
 }
 

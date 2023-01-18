@@ -69,19 +69,37 @@ void Parser::synchronize() {
 
 std::shared_ptr<ExprAST> Parser::parse_identifier() {
     Token token = eat_token();
+    Token next = current_token();
 
-    if (token.value.symbol != Symbol::OPEN_PARENTHESES) {
+    if (next.value.symbol != Symbol::OPEN_PARENTHESES) {
+        std::cout << stringify(token);
         return std::make_shared<VariableAST>(token.value.identifier);
     }
 
-    // // A call
-    // // Eat '('
-    // eat_token();
+    // A call
+    // Eats '('
+    eat_token();
+    std::vector<std::shared_ptr<ExprAST>> arguments;
 
-    // std::vector<std::unique_ptr<ExprAST>> arguments;
-    // while (true) {
+    while (true) {
+        if (auto argument = parse_expression()) {
+            arguments.push_back(argument);
+        } else {
+            return nullptr;
+        }
 
-    // }
+        if (current_token().value.symbol == Symbol::CLOSE_PARENTHESES) {
+            break;
+        } else if (current_token().value.symbol == Symbol::COMMA) {
+            eat_token();
+        } else {
+            throw push_exception("Expected ',' or ')' within function call", current_token());
+        }
+    }
+
+    // Eat ')'
+    eat_token();
+    return std::make_shared<CallAST>(token.value.identifier, std::move(arguments));
 }
 
 std::shared_ptr<ExprAST> Parser::parse_parentheses() {
@@ -95,9 +113,8 @@ std::shared_ptr<ExprAST> Parser::parse_parentheses() {
     // Eat ')' if it's there, otherwise push exception
     if (current_token().value.symbol != Symbol::CLOSE_PARENTHESES) {
         throw push_exception("Expected closing parenthesis ')'", current_token());
-    } else {
-        eat_token();
     }
+    eat_token();
     return expr;
 }
 
@@ -181,11 +198,12 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
         return nullptr;
     }
 
-    Token token = eat_token();
+    Token token = current_token();
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
         // std::cout << stringify(token.type);
         throw push_exception("Expected ';' after expression", token);
     }
+    eat_token();
 
     return std::make_shared<VarDeclareAST>(identifier.value.identifier, std::move(expr));
 }
@@ -199,10 +217,11 @@ std::shared_ptr<StmtAST> Parser::parse_omg() {
         return nullptr;
     }
 
-    Token token = eat_token();
+    Token token = current_token();
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
         throw push_exception("Expected ';' after value", token);
     }
+    eat_token();
 
     return std::make_shared<OmgAST>(expr);
 }
@@ -210,10 +229,11 @@ std::shared_ptr<StmtAST> Parser::parse_omg() {
 std::shared_ptr<StmtAST> Parser::parse_expression_statement() {
     std::shared_ptr<ExprAST> expr = parse_expression();
 
-    Token token = eat_token();
+    Token token = current_token();
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
         throw push_exception("Expected ';' after expression", token);
     }
+    eat_token();
     if (!expr) {
         return nullptr;
     }

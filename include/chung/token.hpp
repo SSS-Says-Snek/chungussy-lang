@@ -48,7 +48,7 @@ struct TokenVal {
 
     // L unions (I'm lazy to write a tagged one)
     std::string identifier;
-    std::u32string string;
+    std::string string;
 };
 
 struct Token {

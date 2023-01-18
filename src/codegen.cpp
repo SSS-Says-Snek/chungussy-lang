@@ -1,22 +1,23 @@
-#include "chung/codegen.hpp"
+#include "chung/ast.hpp"
 
-llvm::Value* VariableAST::codegen() {}
+llvm::Value* codegen(Context& ctx) {}
 
-llvm::Value* VarDeclareAST::codegen() {
+llvm::Value* VarDeclareAST::codegen(Context& ctx) {
     // For now
-    return expr->codegen();
+    return expr->codegen(ctx);
 }
 
-llvm::Value* OmgAST::codegen() {}
-
-llvm::Value* ExprStmtAST::codegen() {
-    return expr->codegen();
+llvm::Value* OmgAST::codegen(Context& ctx) {
 }
 
-llvm::Value* BinaryExprAST::codegen() {
+llvm::Value* ExprStmtAST::codegen(Context& ctx) {
+    return expr->codegen(ctx);
+}
+
+llvm::Value* BinaryExprAST::codegen(Context& ctx) {
     std::cout << "E";
-    llvm::Value* lhs_code = lhs->codegen();
-    llvm::Value* rhs_code = rhs->codegen();
+    llvm::Value* lhs_code = lhs->codegen(ctx);
+    llvm::Value* rhs_code = rhs->codegen(ctx);
     if (!lhs_code || !rhs_code) {
         return nullptr;
     }
@@ -25,23 +26,27 @@ llvm::Value* BinaryExprAST::codegen() {
         // TODO: Add type system (wow)
         case Operator::ADD:
             lhs_code->getType()->print(llvm::outs());
-            return builder->CreateAdd(lhs_code, rhs_code);
+            return ctx.builder.CreateAdd(lhs_code, rhs_code);
     }
 }
 
-llvm::Value* PrimitiveAST::codegen() {
+llvm::Value* CallAST::codegen(Context& ctx) {}
+
+llvm::Value* PrimitiveAST::codegen(Context& ctx) {
     switch (value_type) {
         case ValueType::INT64:
             std::cout << "Int\n";
-            return llvm::ConstantInt::get(*context, llvm::APInt{64, static_cast<uint64_t>(int64), true});
+            return llvm::ConstantInt::get(ctx.context, llvm::APInt{64, static_cast<uint64_t>(int64), true});
         case ValueType::UINT64:
             std::cout << "Uint\n";
-            return llvm::ConstantInt::get(*context, llvm::APInt{64, uint64, false});
+            return llvm::ConstantInt::get(ctx.context, llvm::APInt{64, uint64, false});
         case ValueType::FLOAT64:
             std::cout << "Float\n";
-            return llvm::ConstantFP::get(*context, llvm::APFloat{float64});
+            return llvm::ConstantFP::get(ctx.context, llvm::APFloat{float64});
         default:
             std::cout << "L\n";
             return nullptr;
     }
 }
+
+llvm::Value* VariableAST::codegen(Context& ctx) {}

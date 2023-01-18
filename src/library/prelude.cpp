@@ -18,6 +18,4 @@ void setup_prelude(Context& ctx) {
     for (auto& arg: print_func->args()) {
         arg.setName("value");
     }
-    print_func->print(llvm::outs(), nullptr);
-    
 }

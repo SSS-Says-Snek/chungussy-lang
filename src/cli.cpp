@@ -3,23 +3,25 @@
 #include "chung/file.hpp"
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
+
+#include "chung/utils/ansi.hpp"
+
 #include "chung/library/prelude.hpp"
 
 #define CHUNG_VER_MAJOR 0
 #define CHUNG_VER_MINOR 0
 #define CHUNG_VER_PATCH 1
 
-#define ANSI_RED "\033[1;31m"
-#define ANSI_GREEN "\033[1;32m"
-#define ANSI_RESET "\033[0m"
-
 inline std::string chung_ver_string() {
     return std::to_string(CHUNG_VER_MAJOR) + '.' + std::to_string(CHUNG_VER_MINOR) + '.' + std::to_string(CHUNG_VER_PATCH);
 }
 
 void run_help() {
-    std::cout << "Usage: chung [options]\n";
-    std::cout << "IDK something something\n";  
+    std::cout << "Chungussy Programming Language Compiler\n\n";
+    std::cout << "Usage:\n";
+    std::cout << "    chung [command] [options]\n\n";
+    std::cout << "Commands:\n";
+    std::cout << "    chung parse <file.chung>   Lexes and parses the file, then dumps the AST\n";
 }
 
 void run_parse(std::vector<std::string>& args) {
@@ -85,10 +87,17 @@ int main(const int argc, const char** argv) {
         args.push_back(argv[i]);
     }
 
+    if (args.empty()) {
+        run_help();
+        return 0;
+    }
+
     std::string command = args[0];
-    if (command == "help" || args.empty()) {
+    if (command == "help") {
         run_help();
     } else if (command == "parse") {
         run_parse(args);
     }
+
+    return 0;
 }

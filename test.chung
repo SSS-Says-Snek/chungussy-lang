@@ -1,1 +1,1 @@
-let e = add(6, 9);
+let e = print(4);

@@ -30,7 +30,28 @@ llvm::Value* BinaryExprAST::codegen(Context& ctx) {
     }
 }
 
-llvm::Value* CallAST::codegen(Context& ctx) {}
+llvm::Value* CallAST::codegen(Context& ctx) {
+    llvm::Function* function = ctx.module->getFunction(callee);
+    if (!function) {
+        std::cout << "TODO: You suck\n";
+        return nullptr;
+    }
+
+    if (function->arg_size() != arguments.size()) {
+        std::cout << "TODO: You suck because you didn't pass correct number of args";
+        return nullptr;
+    }
+
+    std::vector<llvm::Value*> argument_values;
+    for (auto& arg: arguments) {
+        argument_values.push_back(arg->codegen(ctx));
+        if (!argument_values.back()) {
+            return nullptr;
+        }
+    }
+
+    return ctx.builder.CreateCall(function, argument_values, "calltmp");
+}
 
 llvm::Value* PrimitiveAST::codegen(Context& ctx) {
     switch (value_type) {

@@ -67,16 +67,10 @@ void Parser::synchronize() {
     }
 }
 
-std::shared_ptr<ExprAST> Parser::parse_identifier() {
-    Token token = eat_token();
-    Token next = current_token();
+std::shared_ptr<ExprAST> Parser::parse_call() {
+    // Eat function callee
+    Token callee = eat_token();
 
-    if (next.value.symbol != Symbol::OPEN_PARENTHESES) {
-        std::cout << stringify(token);
-        return std::make_shared<VariableAST>(token.value.identifier);
-    }
-
-    // A call
     // Eats '('
     eat_token();
     std::vector<std::shared_ptr<ExprAST>> arguments;
@@ -99,7 +93,21 @@ std::shared_ptr<ExprAST> Parser::parse_identifier() {
 
     // Eat ')'
     eat_token();
-    return std::make_shared<CallAST>(token.value.identifier, std::move(arguments));
+    return std::make_shared<CallAST>(callee.value.identifier, std::move(arguments));
+}
+
+std::shared_ptr<ExprAST> Parser::parse_identifier() {
+    Token token = current_token();
+    Token next = next_token();
+
+    if (next.value.symbol != Symbol::OPEN_PARENTHESES) {
+        // Eat identifier
+        eat_token();
+        return std::make_shared<VariableAST>(token.value.identifier);
+    }
+
+    // A call
+    return parse_call();
 }
 
 std::shared_ptr<ExprAST> Parser::parse_parentheses() {

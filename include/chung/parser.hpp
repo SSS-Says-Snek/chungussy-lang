@@ -65,6 +65,7 @@ public:
 
     void synchronize();
 
+    std::shared_ptr<ExprAST> parse_call();
     std::shared_ptr<ExprAST> parse_identifier();
     std::shared_ptr<ExprAST> parse_parentheses();
     std::shared_ptr<ExprAST> parse_bin_op(int min_op_precedence, std::shared_ptr<ExprAST> lhs);

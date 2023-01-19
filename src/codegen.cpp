@@ -33,12 +33,14 @@ llvm::Value* BinaryExprAST::codegen(Context& ctx) {
 llvm::Value* CallAST::codegen(Context& ctx) {
     llvm::Function* function = ctx.module->getFunction(callee);
     if (!function) {
-        std::cout << "TODO: You suck\n";
+        std::cout << "No function named '" + callee + "'\n";
         return nullptr;
     }
 
-    if (function->arg_size() != arguments.size()) {
-        std::cout << "TODO: You suck because you didn't pass correct number of args";
+    size_t expected_num_args = function->arg_size();
+    if (expected_num_args != arguments.size()) {
+        std::cout << "Expected " + std::to_string(expected_num_args) + " argument" + (expected_num_args != 1 ? "s " : " ") + "in call to function '" + callee +
+            "', got " + std::to_string(arguments.size()) << '\n';
         return nullptr;
     }
 
@@ -56,16 +58,16 @@ llvm::Value* CallAST::codegen(Context& ctx) {
 llvm::Value* PrimitiveAST::codegen(Context& ctx) {
     switch (value_type) {
         case ValueType::INT64:
-            std::cout << "Int\n";
+            // std::cout << "Int\n";
             return llvm::ConstantInt::get(ctx.context, llvm::APInt{64, static_cast<uint64_t>(int64), true});
         case ValueType::UINT64:
-            std::cout << "Uint\n";
+            // std::cout << "Uint\n";
             return llvm::ConstantInt::get(ctx.context, llvm::APInt{64, uint64, false});
         case ValueType::FLOAT64:
-            std::cout << "Float\n";
+            // std::cout << "Float\n";
             return llvm::ConstantFP::get(ctx.context, llvm::APFloat{float64});
         default:
-            std::cout << "L\n";
+            // std::cout << "L\n";
             return nullptr;
     }
 }

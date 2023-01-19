@@ -21,5 +21,5 @@ struct Context {
     Context():
         context{llvm::LLVMContext()}, 
         builder{llvm::IRBuilder<>(context)},
-        module{std::make_unique<llvm::Module>("Sussy", context)} {}
+        module{std::make_unique<llvm::Module>("<module sus>", context)} {}
 };

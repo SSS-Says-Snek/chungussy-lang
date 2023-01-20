@@ -159,11 +159,11 @@ std::shared_ptr<ExprAST> Parser::parse_primitive() {
             return std::make_shared<PrimitiveAST>(token.value.uint64);
         case TokenType::FLOAT64:
             return std::make_shared<PrimitiveAST>(token.value.float64);
+        case TokenType::STRING:
+            return std::make_shared<PrimitiveAST>(token.value.string);
         default:
             // Invalid token
             throw push_exception("Invalid token in expression", token);
-            // std::cout << token.beg << ' ' << token.end << '\n';
-            // return std::make_shared<PrimitiveAST>();
     }
 }
 
@@ -195,7 +195,7 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
          throw push_exception("Expected identifier to assign expression to", identifier);
     }
     
-    std::shared_ptr<ExprAST> expr = std::make_shared<PrimitiveAST>(nullptr);
+    std::shared_ptr<ExprAST> expr = std::make_shared<PrimitiveAST>();
     if (current_token().type == TokenType::OPERATOR && current_token().value.op == Operator::ASSIGN) {
         // Eat '='
         eat_token();
@@ -208,8 +208,7 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
 
     Token token = current_token();
     if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
-        // std::cout << stringify(token.type);
-        throw push_exception("Expected ';' after expression", token);
+        throw push_exception("Expected ';' after identifier", token);
     }
     eat_token();
 

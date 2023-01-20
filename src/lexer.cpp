@@ -21,6 +21,12 @@
         advance();                                                              \
         break;                                                                  \
 
+#define HANDLE_ESCAPE_SEQUENCE(char_, actual_char) \
+    case char_:                                    \
+        string += actual_char;                     \
+        advance();                                 \
+        break;                                     \
+
 inline bool is_identifier_char(char32_t c) {
     if (std::iswalpha(c) || c == '_') {
         return true;
@@ -147,6 +153,40 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                 }
 
                 tokens.push_back(Token{type, value, start, cursor});
+            } else if (peek() == U'"') {
+                std::u32string string;
+                size_t start = cursor;
+                advance();
+
+                while (peek() != U'"') {
+                    if (peek() == '\0') {
+                        throw LexException{"Unterminated string", start, cursor};
+                    }
+
+                    if (peek() == U'\\') {
+                        advance();
+                        switch (peek()) {
+                            HANDLE_ESCAPE_SEQUENCE(U'n', U'\n')
+                            HANDLE_ESCAPE_SEQUENCE(U't', U'\t')
+                            HANDLE_ESCAPE_SEQUENCE(U'r', U'\r')
+                            HANDLE_ESCAPE_SEQUENCE(U'\"', U'\"')
+                            HANDLE_ESCAPE_SEQUENCE(U'\'', U'\'')
+                            HANDLE_ESCAPE_SEQUENCE(U'\\', U'\\')
+
+                            // Goofy
+                            HANDLE_ESCAPE_SEQUENCE(U'a', U'\a')
+                            HANDLE_ESCAPE_SEQUENCE(U'b', U'\b')
+                            HANDLE_ESCAPE_SEQUENCE(U'e', U'\e')
+                            HANDLE_ESCAPE_SEQUENCE(U'f', U'\f')
+                        }
+                    } else {
+                        string += advance();
+                    }
+                }
+                advance();
+
+                value.string = string;
+                tokens.push_back(Token{TokenType::STRING, value, start, cursor});
             } else {
                 switch (peek()) {
                     case '/':

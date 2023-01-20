@@ -97,13 +97,15 @@ public:
         uint64_t uint64;
         double float64;
     };
-    enum ValueType {INVALID, INT64, UINT64, FLOAT64, NONE} value_type;
+    std::u32string string;
+
+    enum ValueType {INVALID, INT64, UINT64, FLOAT64, STRING} value_type;
 
     PrimitiveAST(): value_type{ValueType::INVALID} {}
     PrimitiveAST(int64_t int64): int64{int64}, value_type{ValueType::INT64} {}
     PrimitiveAST(uint64_t uint64): uint64{uint64}, value_type{ValueType::UINT64} {}
     PrimitiveAST(double float64): float64{float64}, value_type{ValueType::FLOAT64} {}
-    PrimitiveAST(std::nullptr_t): value_type{ValueType::NONE} {}
+    PrimitiveAST(std::u32string string): string{std::move(string)}, value_type{ValueType::STRING} {}
 
     std::string stringify(size_t indent_level = 0);
     virtual llvm::Value* codegen(Context& ctx);

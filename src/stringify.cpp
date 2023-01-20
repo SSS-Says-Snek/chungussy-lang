@@ -2,6 +2,7 @@
 #include <iterator>
 
 #include "chung/stringify.hpp"
+#include "chung/utf.hpp"
 
 inline std::string indent(size_t indent_level) {
     std::string indentation;
@@ -172,8 +173,8 @@ std::string PrimitiveAST::stringify(size_t indent_level) {
             return indentation + "UInt64: " + std::to_string(uint64) + '\n';
         case ValueType::FLOAT64:
             return indentation + "Float64: " + std::to_string(float64) + '\n';
-        case ValueType::NONE:
-            return indentation + "None\n";
+        case ValueType::STRING:
+            return indentation + "String: \"" + u32tostring(string) + "\"\n";
         default:
             return indentation + "Invalid\n";
     }

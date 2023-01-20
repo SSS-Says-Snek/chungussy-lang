@@ -33,7 +33,8 @@ enum class TokenType {
 
     UINT64,
     INT64,
-    FLOAT64
+    FLOAT64,
+    STRING
 };
 
 struct TokenVal {
@@ -48,7 +49,7 @@ struct TokenVal {
 
     // L unions (I'm lazy to write a tagged one)
     std::string identifier;
-    std::string string;
+    std::u32string string;
 };
 
 struct Token {

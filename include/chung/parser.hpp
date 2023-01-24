@@ -74,6 +74,7 @@ public:
     
     // Statements
     std::shared_ptr<StmtAST> parse_var_declaration();
+    std::shared_ptr<StmtAST> parse_function();
     std::shared_ptr<StmtAST> parse_omg();
     std::shared_ptr<StmtAST> parse_expression_statement();
     

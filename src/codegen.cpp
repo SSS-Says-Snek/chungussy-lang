@@ -1,13 +1,13 @@
 #include "chung/ast.hpp"
 
-llvm::Value* codegen(Context& ctx) {}
-
 llvm::Value* VarDeclareAST::codegen(Context& ctx) {
     // For now
     return expr->codegen(ctx);
 }
 
 llvm::Value* OmgAST::codegen(Context& ctx) {
+    std::cerr << "NOT IMPLEMENTED yet\n";
+    return nullptr;
 }
 
 llvm::Value* ExprStmtAST::codegen(Context& ctx) {
@@ -28,6 +28,9 @@ llvm::Value* BinaryExprAST::codegen(Context& ctx) {
             lhs_code->getType()->print(llvm::outs());
             return ctx.builder.CreateAdd(lhs_code, rhs_code);
     }
+
+    std::cerr << "NOT IMPLEMENTED yet\n";
+    return nullptr;
 }
 
 llvm::Value* CallAST::codegen(Context& ctx) {
@@ -72,4 +75,7 @@ llvm::Value* PrimitiveAST::codegen(Context& ctx) {
     }
 }
 
-llvm::Value* VariableAST::codegen(Context& ctx) {}
+llvm::Value* VariableAST::codegen(Context& ctx) {
+    std::cerr << "NOT IMPLEMENTED yet\n";
+    return nullptr;
+}

@@ -215,6 +215,10 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
     return std::make_shared<VarDeclareAST>(identifier.value.identifier, std::move(expr));
 }
 
+std::shared_ptr<StmtAST> Parser::parse_function() {
+    
+}
+
 std::shared_ptr<StmtAST> Parser::parse_omg() {
     // Eat '__omg'
     eat_token();

@@ -3,6 +3,7 @@
 #include "chung/file.hpp"
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
+#include "chung/stringify.hpp"
 
 #include "chung/utils/ansi.hpp"
 
@@ -36,7 +37,7 @@ void run_parse(std::vector<std::string>& args) {
         std::cerr << ANSI_RED << "File not found: \"" << file_path << "\" cannot be located" << '\n' << ANSI_RESET;
         std::exit(1);
     }
-    std::cout << "Parsing " << file_path << '\n';
+    std::cout << "Lexing " << file_path << '\n';
 
     std::u32string source = read_source(file_path);
     Lexer lexer{source};
@@ -53,8 +54,14 @@ void run_parse(std::vector<std::string>& args) {
         std::cout << ANSI_RESET;
     } else {
         std::cout << ANSI_GREEN << "Successfully lexed with no exceptions!\n" << ANSI_RESET;
-    }
+        std::cout << "Tokens: ";
+        for (auto& token: tokens) {
+            std::cout << '|' << stringify(token) << "| ";
+        }
+        std::cout << '\n';
+     }
 
+    std::cout << "Parsing " << file_path << '\n';
     Parser parser{tokens, lexer.get_source_lines()};
     auto statements = parser.parse();
     auto parse_exceptions = parser.get_exceptions();

@@ -189,8 +189,21 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                 tokens.push_back(Token{TokenType::STRING, value, start, cursor});
             } else {
                 switch (peek()) {
+                    case '-':
+                        advance();
+                        if (peek() == '>') { // Arrow (->)
+                            value.symbol = Symbol::ARROW;
+                            advance();
+                            tokens.push_back(Token{TokenType::SYMBOL, value, cursor - 2, cursor});
+                        } else { // Subtraction
+                            value.op = Operator::SUB;
+                            tokens.push_back(Token{TokenType::OPERATOR, value, cursor - 1, cursor});
+                        }
+                        break;
+
                     case '/':
-                        if (advance() == '/') { // Comment
+                        advance();
+                        if (peek() == '/') { // Comment
                             advance();
                             while (peek() != '\0') {
                                 if (advance() == '\n') {
@@ -199,13 +212,11 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                             }
                         } else { // Division
                             value.op = Operator::DIV;
-                            tokens.push_back(Token{TokenType::OPERATOR, value, cursor, cursor + 1});
-                            advance();
+                            tokens.push_back(Token{TokenType::OPERATOR, value, cursor - 1, cursor});
                         }
                         break;
 
                     HANDLE_OP(Operator::ADD, '+')
-                    HANDLE_OP(Operator::SUB, '-')
                     HANDLE_OP(Operator::MUL, '*')
                     HANDLE_OP(Operator::ASSIGN, '=')
 

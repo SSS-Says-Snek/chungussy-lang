@@ -16,6 +16,8 @@ enum class Symbol {
     OPEN_BRACKETS, CLOSE_BRACKETS,
     OPEN_BRACES, CLOSE_BRACES,
 
+    ARROW,
+
     DOT, COMMA, COLON, SEMICOLON
 };
 

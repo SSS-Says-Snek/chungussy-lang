@@ -42,7 +42,14 @@ class FunctionAST: public StmtAST {
 public:
     std::string name;
     std::vector<VarDeclareAST> parameters;
-    std::vector<std::shared_ptr<AST>> body;
+    std::vector<std::shared_ptr<StmtAST>> body;
+
+    // FOR NOW; I just want things to work
+    std::shared_ptr<ExprAST> return_type;
+
+
+    std::string stringify(size_t indent_level = 0);
+    virtual llvm::Value* codegen(Context& ctx);
 };
 
 class OmgAST: public StmtAST {

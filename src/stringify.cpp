@@ -38,9 +38,10 @@ std::string stringify(const Symbol& symbol, bool verbose) {
         "OpenBraces", "CloseBraces",
         "Dot", "Comma", "Colon", "Semicolon"
     };
-    static const char symbols[] = {
-        '(', ')', '[', ']', '{', '}',
-        '.', ',', ':', ';'
+    static const char* symbols[] = {
+        "(", ")", "[", "]", "{", "}",
+        "->",
+        ".", ",", ":", ";"
     };
 
     if (verbose) {

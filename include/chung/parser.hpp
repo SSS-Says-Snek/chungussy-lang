@@ -73,6 +73,7 @@ public:
     std::shared_ptr<ExprAST> parse_primary();
     
     // Statements
+    std::vector<std::shared_ptr<StmtAST>> parse_block();
     std::shared_ptr<StmtAST> parse_var_declaration();
     std::shared_ptr<StmtAST> parse_function();
     std::shared_ptr<StmtAST> parse_omg();

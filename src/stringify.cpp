@@ -87,6 +87,8 @@ std::string stringify(const Token& token) {
             return std::to_string(token.value.uint64);
         case TokenType::FLOAT64:
             return std::to_string(token.value.float64);
+        case TokenType::STRING:
+            return u32tostring(token.value.string);
         
         default:
             return "Unknown";
@@ -104,6 +106,10 @@ std::string StmtAST::stringify(size_t indent_level) {
 
 std::string ExprAST::stringify(size_t indent_level) {
     return indent(indent_level) + "Goofy expression";
+}
+
+std::string FunctionAST::stringify(size_t indent_level) {
+    return indent(indent_level) + "Goofy function";
 }
 
 std::string VarDeclareAST::stringify(size_t indent_level) {
@@ -158,7 +164,13 @@ std::string CallAST::stringify(size_t indent_level) {
     string += "\n\t" + indentation + "Arguments:\n";
     
     for (size_t i = 0; i < arguments.size(); i++) {
-        string += indentation + "Argument " + std::to_string(i + 1) + ":\n" + arguments[i]->stringify(indent_level + 2);
+        /*
+        Call:
+            Arguments:
+                Argument 1:
+                    sdgasg
+        */
+        string += indentation + "\t\tArgument " + std::to_string(i + 1) + ":\n" + arguments[i]->stringify(indent_level + 3);
     }
 
     return string;

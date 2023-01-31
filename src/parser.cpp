@@ -5,6 +5,13 @@
 #include "chung/parser.hpp"
 #include "chung/stringify.hpp"
 
+#define MATCH_SIMPLE(condition, exception_string)                \
+    if (current_token().condition) {                             \
+        throw push_exception(exception_string, current_token()); \
+    }                                                            \
+    eat_token();                                                 \
+
+
 int get_op_precedence(Operator op) {
     static const std::unordered_map<Operator, int> op_lookup {
         {Operator::ADD, 1}, {Operator::SUB, 1},
@@ -70,24 +77,30 @@ void Parser::synchronize() {
 std::shared_ptr<ExprAST> Parser::parse_call() {
     // Eat function callee
     Token callee = eat_token();
+    std::cout << stringify(callee);
 
     // Eats '('
-    eat_token();
+    MATCH_SIMPLE(value.symbol != Symbol::OPEN_PARENTHESES, "Expected '(' after function callee")
     std::vector<std::shared_ptr<ExprAST>> arguments;
 
-    while (true) {
+    bool running = true;
+    while (running) {
         if (auto argument = parse_expression()) {
             arguments.push_back(argument);
         } else {
             return nullptr;
         }
 
-        if (current_token().value.symbol == Symbol::CLOSE_PARENTHESES) {
-            break;
-        } else if (current_token().value.symbol == Symbol::COMMA) {
-            eat_token();
-        } else {
-            throw push_exception("Expected ',' or ')' within function call", current_token());
+        std::cout << stringify(current_token());
+        switch (current_token().value.symbol) {
+            case Symbol::CLOSE_PARENTHESES:
+                running = false;
+                break;
+            case Symbol::COMMA:
+                eat_token();
+                break;
+            default:
+                throw push_exception("Expected ',' or ')' within function call", current_token());
         }
     }
 
@@ -118,11 +131,8 @@ std::shared_ptr<ExprAST> Parser::parse_parentheses() {
         return nullptr;
     }
 
-    // Eat ')' if it's there, otherwise push exception
-    if (current_token().value.symbol != Symbol::CLOSE_PARENTHESES) {
-        throw push_exception("Expected closing parenthesis ')'", current_token());
-    }
-    eat_token();
+    // Eat ')'
+    MATCH_SIMPLE(value.symbol != Symbol::CLOSE_PARENTHESES, "Expected closing parenthesis ')'")
     return expr;
 }
 
@@ -134,7 +144,7 @@ std::shared_ptr<ExprAST> Parser::parse_bin_op(int min_op_precedence, std::shared
         if (op_precedence < min_op_precedence || op.type != TokenType::OPERATOR) {
             return lhs;
         }
-        std::cout << "Binary op: " << stringify(op.value.op) << '\n';
+        // std::cout << "Binary op: " << stringify(op.value.op) << '\n';
 
         // Eat operator
         eat_token();
@@ -176,24 +186,38 @@ std::shared_ptr<ExprAST> Parser::parse_primary() {
             if (token.value.symbol == Symbol::OPEN_PARENTHESES) {
                 return parse_parentheses();
             }
-            break;
+            return nullptr;
         default:
-            std::cout << "Primitive\n";
+            // std::cout << "Primitive\n";
             return parse_primitive();
     }
+}
 
-    // To satisfy clang
-    return nullptr;
+std::vector<std::shared_ptr<StmtAST>> Parser::parse_block() {
+    // Eat '{'
+    MATCH_SIMPLE(value.symbol != Symbol::OPEN_BRACES, "Expected '{' at start of block")
+
+    std::vector<std::shared_ptr<StmtAST>> statements;
+    while (current_token().value.symbol != Symbol::CLOSE_BRACES) {
+        statements.push_back(parse_statement());
+    }
+
+    // Eat '}'
+    eat_token();
+
+    return statements;
 }
 
 std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
     // Eat 'let'
     eat_token();
+
     // Eat identifier
-    Token identifier = eat_token();
+    Token identifier = current_token();
     if (identifier.type != TokenType::IDENTIFIER) {
          throw push_exception("Expected identifier to assign expression to", identifier);
     }
+    eat_token();
     
     std::shared_ptr<ExprAST> expr = std::make_shared<PrimitiveAST>();
     if (current_token().type == TokenType::OPERATOR && current_token().value.op == Operator::ASSIGN) {
@@ -206,17 +230,46 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
         return nullptr;
     }
 
-    Token token = current_token();
-    if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
-        throw push_exception("Expected ';' after identifier", token);
-    }
-    eat_token();
+    MATCH_SIMPLE(value.symbol != Symbol::SEMICOLON, "Expected ';' after identifier")
 
     return std::make_shared<VarDeclareAST>(identifier.value.identifier, std::move(expr));
 }
 
 std::shared_ptr<StmtAST> Parser::parse_function() {
-    
+    // Eat 'def'
+    eat_token();
+
+    // Get and eat function name
+    Token name = current_token();
+    MATCH_SIMPLE(type != TokenType::IDENTIFIER, "Expected function name after 'def'")
+
+    // Eat '('
+    MATCH_SIMPLE(value.symbol != Symbol::OPEN_PARENTHESES, "Expected '(' after function declaration")
+
+    std::vector<VarDeclareAST> parameters;
+    while (current_token().value.symbol != Symbol::CLOSE_PARENTHESES) {
+        // Get and eat parameter name
+        Token parameter = current_token();
+        MATCH_SIMPLE(type != TokenType::IDENTIFIER, "Expected parameter name in function declaration")
+
+        // No default values FOR NOW
+        parameters.push_back(VarDeclareAST{parameter.value.identifier, nullptr});
+
+        switch (current_token().value.symbol) {
+            case Symbol::COMMA:
+                eat_token();
+            case Symbol::CLOSE_PARENTHESES:
+                break;
+            default:
+                throw push_exception("Expected either '(' or ',' in function parameter list", current_token());
+        }
+    }
+
+    // Eat ')'
+    MATCH_SIMPLE(value.symbol != Symbol::CLOSE_PARENTHESES, "Expected ')' after parameter list")
+
+    std::vector<std::shared_ptr<StmtAST>> body = parse_block();
+    return std::make_shared<FunctionAST>(name.value.identifier, parameters, body);
 }
 
 std::shared_ptr<StmtAST> Parser::parse_omg() {
@@ -228,37 +281,32 @@ std::shared_ptr<StmtAST> Parser::parse_omg() {
         return nullptr;
     }
 
-    Token token = current_token();
-    if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
-        throw push_exception("Expected ';' after value", token);
-    }
-    eat_token();
+    // Eat ';'
+    MATCH_SIMPLE(value.symbol != Symbol::SEMICOLON, "Expected ';' after value")
 
     return std::make_shared<OmgAST>(expr);
+}
+
+std::shared_ptr<ExprAST> Parser::parse_expression() {
+    std::shared_ptr<ExprAST> lhs = parse_primary();
+    if (lhs == nullptr) {
+        return nullptr;
+    }
+
+    return parse_bin_op(0, std::move(lhs));
 }
 
 std::shared_ptr<StmtAST> Parser::parse_expression_statement() {
     std::shared_ptr<ExprAST> expr = parse_expression();
 
-    Token token = current_token();
-    if (token.type != TokenType::SYMBOL || token.value.symbol != Symbol::SEMICOLON) {
-        throw push_exception("Expected ';' after expression", token);
-    }
-    eat_token();
+    // Eat ';'
+    MATCH_SIMPLE(value.symbol != Symbol::SEMICOLON, "Expected ';' after expression")
+
     if (!expr) {
         return nullptr;
     }
 
     return std::make_shared<ExprStmtAST>(expr);
-}
-
-std::shared_ptr<ExprAST> Parser::parse_expression() {
-    std::shared_ptr<ExprAST> lhs = parse_primary();
-    if (!lhs) {
-        return nullptr;
-    }
-
-    return parse_bin_op(0, std::move(lhs));
 }
 
 std::shared_ptr<StmtAST> Parser::parse_statement() {
@@ -268,6 +316,8 @@ std::shared_ptr<StmtAST> Parser::parse_statement() {
             case TokenType::KEYWORD:
                 if (token.value.keyword == Keyword::LET) {
                     return parse_var_declaration();
+                } else if (token.value.keyword == Keyword::DEF) {
+                    return parse_function();
                 } else if (token.value.keyword == Keyword::__OMG) {
                     return parse_omg();
                 } else {
@@ -291,7 +341,6 @@ std::vector<std::shared_ptr<StmtAST>> Parser::parse() {
     while (current_token().type != TokenType::EOF) {
         std::shared_ptr<StmtAST> statement = parse_statement();
         if (statement) {
-            // std::cout << "Whoa" << statement->stringify();
             statements.push_back(statement);
         }
     }

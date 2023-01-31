@@ -5,6 +5,11 @@ llvm::Value* VarDeclareAST::codegen(Context& ctx) {
     return expr->codegen(ctx);
 }
 
+llvm::Value* FunctionAST::codegen(Context& ctx) {
+    std::cerr << "NOT IMPLEMENTED yet\n";
+    return nullptr;
+}
+
 llvm::Value* OmgAST::codegen(Context& ctx) {
     std::cerr << "NOT IMPLEMENTED yet\n";
     return nullptr;
@@ -42,6 +47,7 @@ llvm::Value* CallAST::codegen(Context& ctx) {
 
     size_t expected_num_args = function->arg_size();
     if (expected_num_args != arguments.size()) {
+        // "Expected x argument(s) in call to function sussy, got y"
         std::cout << "Expected " + std::to_string(expected_num_args) + " argument" + (expected_num_args != 1 ? "s " : " ") + "in call to function '" + callee +
             "', got " + std::to_string(arguments.size()) << '\n';
         return nullptr;

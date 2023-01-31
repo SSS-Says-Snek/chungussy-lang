@@ -47,6 +47,9 @@ public:
     // FOR NOW; I just want things to work
     std::shared_ptr<ExprAST> return_type;
 
+    FunctionAST(const std::string& name, std::vector<VarDeclareAST> parameters, std::vector<std::shared_ptr<StmtAST>> body):
+        name{name}, parameters{std::move(parameters)}, body{std::move(body)} {}
+
 
     std::string stringify(size_t indent_level = 0);
     virtual llvm::Value* codegen(Context& ctx);

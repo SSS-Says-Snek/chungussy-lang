@@ -77,7 +77,6 @@ void Parser::synchronize() {
 std::shared_ptr<ExprAST> Parser::parse_call() {
     // Eat function callee
     Token callee = eat_token();
-    std::cout << stringify(callee);
 
     // Eats '('
     MATCH_SIMPLE(value.symbol != Symbol::OPEN_PARENTHESES, "Expected '(' after function callee")
@@ -91,7 +90,6 @@ std::shared_ptr<ExprAST> Parser::parse_call() {
             return nullptr;
         }
 
-        std::cout << stringify(current_token());
         switch (current_token().value.symbol) {
             case Symbol::CLOSE_PARENTHESES:
                 running = false;

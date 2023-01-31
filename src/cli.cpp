@@ -80,6 +80,7 @@ void run_parse(std::vector<std::string>& args) {
         Context ctx{};
         setup_prelude(ctx);
 
+        std::cout << "==============================================\n";
         std::cout << ANSI_BOLD << "Program AST\n" << ANSI_RESET;
 
         for (auto& statement: statements) {
@@ -91,7 +92,8 @@ void run_parse(std::vector<std::string>& args) {
             }
         }
 
-        std::cout << ANSI_BOLD << "\nModule IR (temporary trust me bro)\n" << ANSI_RESET;
+        std::cout << "\n==============================================\n";
+        std::cout << ANSI_BOLD << "Module IR (temporary trust me bro)\n" << ANSI_RESET;
         ctx.module->print(llvm::outs(), nullptr);
     }
 }

@@ -5,11 +5,11 @@
 #include "chung/parser.hpp"
 #include "chung/stringify.hpp"
 
-#define MATCH_SIMPLE(condition, exception_string)                \
-    if (current_token().condition) {                             \
-        throw push_exception(exception_string, current_token()); \
-    }                                                            \
-    eat_token();                                                 \
+#define MATCH_SIMPLE(condition, exception_string)                   \
+    if (!(current_token().condition)) {                             \
+        throw push_exception(exception_string, current_token());    \
+    }                                                               \
+    eat_token();                                                    \
 
 
 int get_op_precedence(Operator op) {
@@ -79,7 +79,7 @@ std::shared_ptr<ExprAST> Parser::parse_call() {
     Token callee = eat_token();
 
     // Eats '('
-    MATCH_SIMPLE(value.symbol != Symbol::OPEN_PARENTHESES, "Expected '(' after function callee")
+    MATCH_SIMPLE(value.symbol == Symbol::OPEN_PARENTHESES, "Expected '(' after function callee")
     std::vector<std::shared_ptr<ExprAST>> arguments;
 
     bool running = true;
@@ -130,7 +130,7 @@ std::shared_ptr<ExprAST> Parser::parse_parentheses() {
     }
 
     // Eat ')'
-    MATCH_SIMPLE(value.symbol != Symbol::CLOSE_PARENTHESES, "Expected closing parenthesis ')'")
+    MATCH_SIMPLE(value.symbol == Symbol::CLOSE_PARENTHESES, "Expected closing parenthesis ')'")
     return expr;
 }
 
@@ -193,7 +193,7 @@ std::shared_ptr<ExprAST> Parser::parse_primary() {
 
 std::vector<std::shared_ptr<StmtAST>> Parser::parse_block() {
     // Eat '{'
-    MATCH_SIMPLE(value.symbol != Symbol::OPEN_BRACES, "Expected '{' at start of block")
+    MATCH_SIMPLE(value.symbol == Symbol::OPEN_BRACES, "Expected '{' at start of block")
 
     std::vector<std::shared_ptr<StmtAST>> statements;
     while (current_token().value.symbol != Symbol::CLOSE_BRACES) {
@@ -228,7 +228,7 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
         return nullptr;
     }
 
-    MATCH_SIMPLE(value.symbol != Symbol::SEMICOLON, "Expected ';' after identifier")
+    MATCH_SIMPLE(value.symbol == Symbol::SEMICOLON, "Expected ';' after identifier")
 
     return std::make_shared<VarDeclareAST>(identifier.value.identifier, std::move(expr));
 }
@@ -239,16 +239,16 @@ std::shared_ptr<StmtAST> Parser::parse_function() {
 
     // Get and eat function name
     Token name = current_token();
-    MATCH_SIMPLE(type != TokenType::IDENTIFIER, "Expected function name after 'def'")
+    MATCH_SIMPLE(type == TokenType::IDENTIFIER, "Expected function name after 'def'")
 
     // Eat '('
-    MATCH_SIMPLE(value.symbol != Symbol::OPEN_PARENTHESES, "Expected '(' after function declaration")
+    MATCH_SIMPLE(value.symbol == Symbol::OPEN_PARENTHESES, "Expected '(' after function declaration")
 
     std::vector<VarDeclareAST> parameters;
     while (current_token().value.symbol != Symbol::CLOSE_PARENTHESES) {
         // Get and eat parameter name
         Token parameter = current_token();
-        MATCH_SIMPLE(type != TokenType::IDENTIFIER, "Expected parameter name in function declaration")
+        MATCH_SIMPLE(type == TokenType::IDENTIFIER, "Expected parameter name in function declaration")
 
         // No default values FOR NOW
         parameters.push_back(VarDeclareAST{parameter.value.identifier, nullptr});
@@ -264,7 +264,7 @@ std::shared_ptr<StmtAST> Parser::parse_function() {
     }
 
     // Eat ')'
-    MATCH_SIMPLE(value.symbol != Symbol::CLOSE_PARENTHESES, "Expected ')' after parameter list")
+    MATCH_SIMPLE(value.symbol == Symbol::CLOSE_PARENTHESES, "Expected ')' after parameter list")
 
     std::vector<std::shared_ptr<StmtAST>> body = parse_block();
     return std::make_shared<FunctionAST>(name.value.identifier, parameters, body);
@@ -280,7 +280,7 @@ std::shared_ptr<StmtAST> Parser::parse_omg() {
     }
 
     // Eat ';'
-    MATCH_SIMPLE(value.symbol != Symbol::SEMICOLON, "Expected ';' after value")
+    MATCH_SIMPLE(value.symbol == Symbol::SEMICOLON, "Expected ';' after value")
 
     return std::make_shared<OmgAST>(expr);
 }
@@ -298,7 +298,7 @@ std::shared_ptr<StmtAST> Parser::parse_expression_statement() {
     std::shared_ptr<ExprAST> expr = parse_expression();
 
     // Eat ';'
-    MATCH_SIMPLE(value.symbol != Symbol::SEMICOLON, "Expected ';' after expression")
+    MATCH_SIMPLE(value.symbol == Symbol::SEMICOLON, "Expected ';' after expression")
 
     if (!expr) {
         return nullptr;

@@ -1,1 +1,4 @@
-print(3);
+def amogus(e) {
+    print(3);
+    print(4);
+}

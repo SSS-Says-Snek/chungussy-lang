@@ -109,11 +109,20 @@ std::string ExprAST::stringify(size_t indent_level) {
 }
 
 std::string FunctionAST::stringify(size_t indent_level) {
-    return indent(indent_level) + "Goofy function";
+    std::string indentation = indent(indent_level);
+    std::string string{indentation + "Function Declaration:"};
+
+    string += "\n\t" + indentation + "Name: " + name;
+    string += "\n\t" + indentation + "Parameters:";
+
+    for (size_t i = 0; i < parameters.size(); i++) {
+
+    }
+
+    return string;
 }
 
 std::string VarDeclareAST::stringify(size_t indent_level) {
-    // std::cout << "Yum 1";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Variable Declaration:"};
 
@@ -124,7 +133,6 @@ std::string VarDeclareAST::stringify(size_t indent_level) {
 }
 
 std::string OmgAST::stringify(size_t indent_level) {
-    // std::cout << "Yum 11";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Secret OMG:"};
 
@@ -134,7 +142,6 @@ std::string OmgAST::stringify(size_t indent_level) {
 }
 
 std::string ExprStmtAST::stringify(size_t indent_level) {
-    // std::cout << "Yum 1111";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Expression Statement:"};
     
@@ -143,7 +150,6 @@ std::string ExprStmtAST::stringify(size_t indent_level) {
 }
 
 std::string BinaryExprAST::stringify(size_t indent_level) {
-    // std::cout << "Yum111111";
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Binary Operation:"};
 

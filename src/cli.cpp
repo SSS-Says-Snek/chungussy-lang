@@ -53,12 +53,14 @@ void run_parse(std::vector<std::string>& args) {
         }
         std::cout << ANSI_RESET;
     } else {
-        std::cout << ANSI_GREEN << "Successfully lexed with no exceptions!\n" << ANSI_RESET;
-        std::cout << "Tokens: ";
+        std::cout << ANSI_GREEN << "Successfully lexed with no exceptions!\n\n" << ANSI_RESET;
+        std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET;
+        std::cout << ANSI_BOLD << "                Program Tokens                \n" << ANSI_RESET;
+        std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET;
         for (auto& token: tokens) {
-            std::cout << '|' << stringify(token) << "| ";
+            std::cout << '|' << ANSI_BOLD << stringify(token) << ANSI_RESET << "| ";
         }
-        std::cout << '\n';
+        std::cout << "\n\n";
      }
 
     std::cout << "Parsing " << file_path << '\n';
@@ -80,8 +82,9 @@ void run_parse(std::vector<std::string>& args) {
         Context ctx{};
         setup_prelude(ctx);
 
-        std::cout << "==============================================\n";
-        std::cout << ANSI_BOLD << "Program AST\n" << ANSI_RESET;
+        std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET;
+        std::cout << ANSI_BOLD << "                 Program AST                  \n" << ANSI_RESET;
+        std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET << '\n';
 
         for (auto& statement: statements) {
             std::cout << statement->stringify() << '\n';
@@ -92,8 +95,10 @@ void run_parse(std::vector<std::string>& args) {
             }
         }
 
-        std::cout << "\n==============================================\n";
-        std::cout << ANSI_BOLD << "Module IR (temporary trust me bro)\n" << ANSI_RESET;
+        std::cout << "\n\n";
+        std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET;
+        std::cout << ANSI_BOLD << "      Module IR (temporary trust me bro)      \n" << ANSI_RESET;
+        std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET << std::endl;
         ctx.module->print(llvm::outs(), nullptr);
     }
 }

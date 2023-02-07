@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <iterator>
-
 #include "chung/utf.hpp"
 
 // def u32tostring(c):

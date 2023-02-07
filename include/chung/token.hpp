@@ -33,6 +33,7 @@ enum class TokenType {
     SYMBOL,
     KEYWORD,
 
+    // Primitives
     UINT64,
     INT64,
     FLOAT64,

@@ -5,6 +5,7 @@
 
 #include "chung/context.hpp"
 #include "chung/token.hpp"
+#include "chung/type.hpp"
 
 class AST {
 public:
@@ -30,9 +31,11 @@ public:
 class VarDeclareAST: public StmtAST {
 public:
     std::string name;
+    Type& type;
     std::shared_ptr<ExprAST> expr;
 
-    VarDeclareAST(const std::string& name, std::shared_ptr<ExprAST> expr): name{name}, expr{std::move(expr)} {}
+    VarDeclareAST(const std::string& name, Type& type, std::shared_ptr<ExprAST> expr):
+        name{name}, type{type}, expr{std::move(expr)} {}
 
     std::string stringify(size_t indent_level = 0);
     virtual llvm::Value* codegen(Context& ctx);

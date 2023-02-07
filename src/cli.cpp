@@ -1,5 +1,3 @@
-#include <tuple>
-
 #include "chung/file.hpp"
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
@@ -39,6 +37,7 @@ void run_parse(std::vector<std::string>& args) {
     }
     std::cout << "Lexing " << file_path << '\n';
 
+    Context ctx{};
     std::u32string source = read_source(file_path);
     Lexer lexer{source};
 
@@ -64,7 +63,7 @@ void run_parse(std::vector<std::string>& args) {
      }
 
     std::cout << "Parsing " << file_path << '\n';
-    Parser parser{tokens, lexer.get_source_lines()};
+    Parser parser{tokens, lexer.get_source_lines(), ctx};
     auto statements = parser.parse();
     auto parse_exceptions = parser.get_exceptions();
 
@@ -79,7 +78,6 @@ void run_parse(std::vector<std::string>& args) {
     }
 
     if (!statements.empty()) {
-        Context ctx{};
         setup_prelude(ctx);
 
         std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET;

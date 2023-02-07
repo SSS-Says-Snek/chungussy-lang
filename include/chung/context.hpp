@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -12,14 +14,17 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
 
+#include "chung/type.hpp"
+
 struct Context {
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
     std::map<std::string, llvm::Value*> named_values;
+    std::map<std::string, Type&> declared_types;
+    std::map<std::reference_wrapper<const Type>, llvm::Type*, std::less<const Type>> llvm_types;
 
-    Context():
-        context{llvm::LLVMContext()}, 
-        builder{llvm::IRBuilder<>(context)},
-        module{std::make_unique<llvm::Module>("<module sus>", context)} {}
+    Context();
+
+    Type& get_type(const std::string& type_identifier);
 };

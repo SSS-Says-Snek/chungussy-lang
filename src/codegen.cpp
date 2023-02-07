@@ -6,7 +6,36 @@ llvm::Value* VarDeclareAST::codegen(Context& ctx) {
 }
 
 llvm::Value* FunctionAST::codegen(Context& ctx) {
-    std::cerr << "NOT IMPLEMENTED yet\n";
+    std::vector<llvm::Type*> parameter_types;
+    for (auto& parameter: parameters) {
+        parameter_types.push_back(ctx.llvm_types.at(parameter.type));
+    }
+
+    // FOR NOW RET VOID
+    llvm::FunctionType* function_type = llvm::FunctionType::get(llvm::Type::getVoidTy(ctx.context), parameter_types, false);
+    llvm::Function* function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, name, ctx.module.get());
+
+    ctx.named_values.clear();
+
+    // Set parameter names
+    size_t i = 0;
+    for (auto& function_parameter: function->args()) {
+        auto& parameter_name = parameters[i++].name;
+        function_parameter.setName(parameter_name);
+        ctx.named_values[parameter_name] = &function_parameter;
+    }
+
+    // Basic Block
+    llvm::BasicBlock* function_block = llvm::BasicBlock::Create(ctx.context, "entry", function);
+    ctx.builder.SetInsertPoint(function_block);
+
+    for (auto& stmt: body) {
+        stmt->codegen(ctx);
+    }
+
+    ctx.builder.CreateRet(nullptr);
+    llvm::verifyFunction(*function);
+
     return nullptr;
 }
 

@@ -11,6 +11,12 @@
     }                                                               \
     eat_token();                                                    \
 
+#define MATCH_NO_SYNC(condition, exception_string)                   \
+    if (!(current_token().condition)) {                              \
+        push_exception(exception_string, current_token());           \
+    }                                                                \
+    eat_token();                                                     \
+
 
 int get_op_precedence(Operator op) {
     static const std::unordered_map<Operator, int> op_lookup {
@@ -50,21 +56,21 @@ std::string ParseException::write() {
 }
 
 
-Parser::Parser(const std::vector<Token> tokens, const std::vector<std::u32string> source_lines):
-    tokens{std::move(tokens)}, source_lines{std::move(source_lines)}, tokens_idx{0} {}
+Parser::Parser(const std::vector<Token> tokens, const std::vector<std::u32string> source_lines, Context& ctx):
+    tokens{std::move(tokens)}, source_lines{std::move(source_lines)}, ctx{ctx}, tokens_idx{0} {}
 
 void Parser::synchronize() {
     eat_token();
 
     while (current_token().type != TokenType::EOF) {
         Token prev = previous_token();
-        if (prev.type == TokenType::SYMBOL && prev.value.symbol == Symbol::SEMICOLON) {
+        if (prev.value.symbol == Symbol::SEMICOLON) {
             // std::cout << "Done synchronizing\n";
             // std::cout << stringify(next_token());
             return;
         } else {
             Token next = next_token();
-            if (next.type == TokenType::KEYWORD && next.value.keyword == Keyword::LET) {
+            if (next.value.keyword == Keyword::LET) {
                 // std::cout << "Done synchronizing\n";
                 return;
             }
@@ -197,10 +203,17 @@ std::vector<std::shared_ptr<StmtAST>> Parser::parse_block() {
 
     std::vector<std::shared_ptr<StmtAST>> statements;
     while (current_token().value.symbol != Symbol::CLOSE_BRACES) {
+        if (current_token().type == TokenType::EOF) {
+            throw push_exception("Expected '}', got EOF. You probably forgot to close the block", current_token());
+        }
+
+        // std::cout << "OOW" << stringify(current_token());
         statements.push_back(parse_statement());
+        // std::cout << "WOW" << stringify(current_token());
     }
 
     // Eat '}'
+    // std::cout << 'O' << stringify(eat_token());
     eat_token();
 
     return statements;
@@ -213,7 +226,7 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
     // Eat identifier
     Token identifier = current_token();
     if (identifier.type != TokenType::IDENTIFIER) {
-         throw push_exception("Expected identifier to assign expression to", identifier);
+        throw push_exception("Expected identifier to assign expression to", identifier);
     }
     eat_token();
     
@@ -230,7 +243,8 @@ std::shared_ptr<StmtAST> Parser::parse_var_declaration() {
 
     MATCH_SIMPLE(value.symbol == Symbol::SEMICOLON, "Expected ';' after identifier")
 
-    return std::make_shared<VarDeclareAST>(identifier.value.identifier, std::move(expr));
+    // FOR NOW
+    return std::make_shared<VarDeclareAST>(identifier.value.identifier, Type::tnone, std::move(expr));
 }
 
 std::shared_ptr<StmtAST> Parser::parse_function() {
@@ -250,8 +264,19 @@ std::shared_ptr<StmtAST> Parser::parse_function() {
         Token parameter = current_token();
         MATCH_SIMPLE(type == TokenType::IDENTIFIER, "Expected parameter name in function declaration")
 
+        // Eat ':'
+        MATCH_SIMPLE(value.symbol == Symbol::COLON, "Expected ':' after parameter name to specify parameter type")
+
+        Token type_name = current_token();
+        MATCH_SIMPLE(type == TokenType::IDENTIFIER, "Expected type in parameter declaration")
+        
+        Type& type = ctx.get_type(type_name.value.identifier);
+        if (type.ty == Ty::TINVALID) {
+            throw push_exception("Type does not exist", type_name);
+        }
+
         // No default values FOR NOW
-        parameters.push_back(VarDeclareAST{parameter.value.identifier, nullptr});
+        parameters.push_back(VarDeclareAST{parameter.value.identifier, type, nullptr});
 
         switch (current_token().value.symbol) {
             case Symbol::COMMA:

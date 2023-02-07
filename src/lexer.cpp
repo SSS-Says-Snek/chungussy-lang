@@ -75,7 +75,9 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
             } else if (is_identifier_char(peek())) {
                 size_t start = cursor;
                 advance();
-                while (is_identifier_char(peek())) {
+
+                // [a-zA-z0-9_]
+                while (is_identifier_char(peek()) || std::iswdigit(peek())) {
                     advance();
                 }
 

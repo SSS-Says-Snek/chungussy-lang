@@ -1,11 +1,14 @@
 #pragma once
 
+#include <algorithm>
+
 #include "chung/ast.hpp"
+#include "chung/context.hpp"
 #include "chung/error.hpp"
 #include "chung/utf.hpp"
 
 #define VALIDATE_TOKEN(token_, type, condition)         \
-    if (current_token().type == TokenType::EOF || ) {       \
+    if (current_token().type == TokenType::EOF || ) {   \
         return false;                                   \
     }                                                   \
     return current_token().type == type && conditional; \
@@ -23,7 +26,7 @@ public:
 
 class Parser {
 public:
-    Parser(const std::vector<Token> tokens, const std::vector<std::u32string> source_lines);
+    Parser(const std::vector<Token> tokens, const std::vector<std::u32string> source_lines, Context& ctx);
 
     inline Token current_token() {
         if (tokens_idx >= tokens.size()) {
@@ -52,6 +55,10 @@ public:
         }
         return tokens[tokens_idx++];
     }
+
+    // inline void eat_token_until(std::vector<Token>& tokens) {
+    //     while (std::find(tokens.begin(), tokens.end(), eat_token()) != tokens.end()) {}
+    // }
 
     inline ParseException push_exception(const std::string& exception_message, const Token& token) {
         ParseException exception{exception_message, token, u32tostring(source_lines[token.line - 1])};
@@ -89,6 +96,8 @@ public:
 private:
     std::vector<Token> tokens;
     std::vector<std::u32string> source_lines;
+    Context& ctx;
+
     std::vector<ParseException> exceptions;
     size_t tokens_idx;
 };

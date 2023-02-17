@@ -1,8 +1,8 @@
-#include <cstdio>
-
 #include "chung/library/prelude.hpp"
 
 extern "C" {
+    #include <cstdio>
+
     void print(int64_t int64) {
         printf("%" PRId64 "\n", int64);
     }

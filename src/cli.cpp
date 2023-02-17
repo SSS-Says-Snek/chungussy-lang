@@ -1,3 +1,15 @@
+#include <filesystem>
+
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+
+#include "llvm/IR/LegacyPassManager.h"
+
 #include "chung/file.hpp"
 #include "chung/lexer.hpp"
 #include "chung/parser.hpp"
@@ -98,6 +110,64 @@ void run_parse(std::vector<std::string>& args) {
         std::cout << ANSI_BOLD << "      Module IR (temporary trust me bro)      \n" << ANSI_RESET;
         std::cout << ANSI_CYAN << "==============================================\n" << ANSI_RESET << std::endl;
         ctx.module->print(llvm::outs(), nullptr);
+
+        std::cout << "\nCompiling " << file_path << '\n';
+
+        // Compile to object file
+        llvm::InitializeAllTargetInfos();
+        llvm::InitializeAllTargets();
+        llvm::InitializeAllTargetMCs();
+        llvm::InitializeAllAsmParsers();
+        llvm::InitializeAllAsmPrinters();
+
+        std::string target_triple = llvm::sys::getDefaultTargetTriple();
+        std::string target_error;
+
+        auto target = llvm::TargetRegistry::lookupTarget(target_triple, target_error);
+        if (!target) {
+            llvm::errs() << target_error;
+            std::exit(1);
+        }
+
+        std::string cpu{"generic"};
+        std::string features{};
+
+        llvm::TargetOptions options;
+
+        auto rm = llvm::Optional<llvm::Reloc::Model>();
+        auto target_machine = target->createTargetMachine(target_triple, cpu, features, options, rm);
+        
+        ctx.module->setDataLayout(target_machine->createDataLayout());
+        ctx.module->setTargetTriple(target_triple);
+
+        // Create chungbuild directory
+        std::string output_filename{"output.o"};
+        std::filesystem::create_directory("chungbuild");
+
+        std::string output_filepath{std::filesystem::path{"chungbuild"} / output_filename};
+        std::error_code errcode;
+        llvm::raw_fd_ostream dest{output_filepath, errcode, llvm::sys::fs::OF_None};
+
+        if (errcode) {
+            llvm::errs() << "Could not open file: " << errcode.message();
+            std::exit(1);
+        }
+
+        // Compile to object file
+        llvm::legacy::PassManager pass;
+        auto filetype = llvm::CGFT_ObjectFile;
+
+        if (target_machine->addPassesToEmitFile(pass, dest, nullptr, filetype)) {
+            llvm::errs() << "TargetMachine can't emit a file of this type";
+            std::exit(1);
+        }
+
+        pass.run(*ctx.module);
+        dest.flush();
+        
+        // IDK /shrug
+        system("clang++ $(llvm-config --cxxflags) src/library/prelude.cpp -Iinclude -c -o chungbuild/prelude.o");
+        system((std::string{"clang++ $(llvm-config --ldflags --libs) "} + output_filepath + " chungbuild/prelude.o -o chungbuild/output.out").c_str());
     }
 }
 

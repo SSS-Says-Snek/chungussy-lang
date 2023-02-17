@@ -33,6 +33,7 @@ llvm::Value* FunctionAST::codegen(Context& ctx) {
         stmt->codegen(ctx);
     }
 
+    // Void FOR NOW
     ctx.builder.CreateRet(nullptr);
     llvm::verifyFunction(*function);
 
@@ -90,7 +91,7 @@ llvm::Value* CallAST::codegen(Context& ctx) {
         }
     }
 
-    return ctx.builder.CreateCall(function, argument_values, "calltmp");
+    return ctx.builder.CreateCall(function, argument_values);
 }
 
 llvm::Value* PrimitiveAST::codegen(Context& ctx) {

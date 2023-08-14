@@ -1,37 +1,26 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 #undef EOF
-
-enum class Operator {
-    ADD, SUB, MUL, DIV, MOD, POW,
-    BITWISE_AND, BITWISE_OR, BITWISE_NOT,
-
-    ASSIGN
-};
-
-enum class Symbol {
-    OPEN_PARENTHESES, CLOSE_PARENTHESES,
-    OPEN_BRACKETS, CLOSE_BRACKETS,
-    OPEN_BRACES, CLOSE_BRACES,
-
-    ARROW,
-
-    DOT, COMMA, COLON, SEMICOLON
-};
-
-enum class Keyword {
-    DEF, LET, __OMG
-};
 
 enum class TokenType {
     EOF, INVALID,
 
     IDENTIFIER,
-    OPERATOR,
-    SYMBOL,
-    KEYWORD,
+
+    ADD, SUB, MUL, DIV, MOD, POW,
+    BITWISE_AND, BITWISE_OR, BITWISE_NOT,
+    ASSIGN,
+
+    OPEN_PARENTHESES, CLOSE_PARENTHESES,
+    OPEN_BRACKETS, CLOSE_BRACKETS,
+    OPEN_BRACES, CLOSE_BRACES,
+    ARROW,
+    DOT, COMMA, COLON, SEMICOLON,
+
+    DEF, LET, __OMG,
 
     // Primitives
     UINT64,
@@ -42,9 +31,6 @@ enum class TokenType {
 
 struct TokenVal {
     union {
-        Operator op;
-        Symbol symbol;
-        Keyword keyword;
         uint64_t uint64;
         int64_t int64;
         double float64;
@@ -57,7 +43,6 @@ struct TokenVal {
 
 struct Token {
     TokenType type;
-    TokenVal value;
     size_t beg;
     size_t end;
 
@@ -67,10 +52,14 @@ struct Token {
     size_t line;
     size_t column;
 
+    std::string text;
+
     Token(TokenType type, size_t beg, size_t end):
         type{type}, beg{beg}, end{end}, line{0}, column{0} {}
-    Token(TokenType type, TokenVal value, size_t beg, size_t end):
-        type{type}, value{value}, beg{beg}, end{end}, line{0}, column{0} {}
 };
 
 bool is_keyword(const std::string& identifier);
+
+bool is_keyword(TokenType keyword);
+bool is_symbol(TokenType symbol);
+bool is_operator(TokenType op);

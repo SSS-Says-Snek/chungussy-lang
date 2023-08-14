@@ -1,5 +1,4 @@
 #include "chung/stringify.hpp"
-#include "chung/utf.hpp"
 
 inline std::string indent(size_t indent_level) {
     std::string indentation;
@@ -10,7 +9,7 @@ inline std::string indent(size_t indent_level) {
     return indentation;
 }
 
-std::string stringify(const Operator& op, bool verbose) {
+std::string stringify_op(const TokenType& op, bool verbose) {
     static const char* op_names[] = {
         "Add", "Subtract", "Multiply", "Divide", "Modulo", "Power",
         "BitwiseAnd", "BitwiseOr", "BitwiseNot",
@@ -24,12 +23,12 @@ std::string stringify(const Operator& op, bool verbose) {
     };
 
     if (verbose) {
-        return op_names[static_cast<int>(op)];
+        return op_names[static_cast<int>(op) - 3];
     }
-    return ops[static_cast<int>(op)];
+    return ops[static_cast<int>(op) - 3];
 }
 
-std::string stringify(const Symbol& symbol, bool verbose) {
+std::string stringify_symbol(const TokenType& symbol, bool verbose) {
     static const char* symbol_names[] = {
         "OpenParentheses", "CloseParentheses", "OpenBrackets", "CloseBrackets",
         "OpenBraces", "CloseBraces",
@@ -42,53 +41,59 @@ std::string stringify(const Symbol& symbol, bool verbose) {
     };
 
     if (verbose) {
-        return symbol_names[static_cast<int>(symbol)];
+        return symbol_names[static_cast<int>(symbol) - 13];
     }
-    return std::string{symbols[static_cast<int>(symbol)]};
+    return std::string{symbols[static_cast<int>(symbol) - 13]};
 }
 
-std::string stringify(const Keyword& keyword) {
+std::string stringify_keyword(const TokenType& keyword) {
     static const char* keyword_names[] = {
         "Def", "Let", "__OMG"
     };
-    return keyword_names[static_cast<int>(keyword)];
+    return keyword_names[static_cast<int>(keyword) - 24];
 }
 
-std::string stringify(const TokenType& type) {
-    static const char* token_type_names[] = {
-        "EndOfFile", "Invalid", "Identifier", "Operator", "Symbol", "Keyword"
-        "UInt64", "Int64", "Float64"
-    };
-    return token_type_names[static_cast<int>(type)];
+std::string stringify_type(const TokenType& type) {
+    if (type == TokenType::EOF) {
+        return "EndOfFile";
+    } else if (type == TokenType::INVALID) {
+        return "Invalid";
+    } else if (type == TokenType::IDENTIFIER) {
+        return "Identifier";
+    } else if (is_operator(type)) {
+        return "Operator";
+    } else if (is_symbol(type)) {
+        return "Symbol";
+    } else if (is_keyword(type)) {
+        return "Keyword";
+    } else if (type == TokenType::INT64) {
+        return "Int64";
+    } else if (type == TokenType::UINT64) {
+        return "UInt64";
+    } else if (type == TokenType::FLOAT64) {
+        return "Float64";
+    } else {
+        return "Unknown";
+    }
 }
 
 std::string stringify(const Token& token) {
-    switch (token.type) {
-        case TokenType::EOF:
-            return "EOF";
-        case TokenType::INVALID:
-            return "Invalid";
-
-        case TokenType::IDENTIFIER:
-            return token.value.identifier;
-        case TokenType::OPERATOR:
-            return ::stringify(token.value.op);
-        case TokenType::SYMBOL:
-            return ::stringify(token.value.symbol);
-        case TokenType::KEYWORD:
-            return ::stringify(token.value.keyword);
-
-        case TokenType::INT64:
-            return std::to_string(token.value.int64);
-        case TokenType::UINT64:
-            return std::to_string(token.value.uint64);
-        case TokenType::FLOAT64:
-            return std::to_string(token.value.float64);
-        case TokenType::STRING:
-            return u32tostring(token.value.string);
-        
-        default:
-            return "Unknown";
+    if (token.type == TokenType::EOF) {
+        return "EOF";
+    } else if (token.type == TokenType::INVALID) {
+        return "Invalid";
+    } else if (token.type == TokenType::IDENTIFIER) {
+        return token.text;
+    } else if (is_operator(token.type)) {
+        return stringify_op(token.type, false);
+    } else if (is_symbol(token.type)) {
+        return stringify_symbol(token.type, false);
+    } else if (is_keyword(token.type)) {
+        return stringify_keyword(token.type);
+    } else if (token.type == TokenType::INT64 || token.type == TokenType::UINT64 || token.type == TokenType::FLOAT64 || token.type == TokenType::STRING) {
+        return token.text;
+    } else {
+        return "Unknown";
     }
 }
 
@@ -113,7 +118,10 @@ std::string FunctionAST::stringify(size_t indent_level) {
     string += "\n\t" + indentation + "Parameters:";
 
     for (size_t i = 0; i < parameters.size(); i++) {
-
+        string += "\n\t\t" + indentation + "Parameter " + std::to_string(i) + ": " + parameters[i].name;
+    }
+    if (parameters.size() == 0) {
+        string += "\n\t\tNo Parameters";
     }
 
     return string;
@@ -150,7 +158,7 @@ std::string BinaryExprAST::stringify(size_t indent_level) {
     std::string indentation = indent(indent_level);
     std::string string{indentation + "Binary Operation:"};
 
-    string += "\n\t" + indentation + "Operator: " + ::stringify(op);
+    string += "\n\t" + indentation + "Operator: " + stringify_type(op);
 
     // 2 new indentation level: 1 for "Binary Operation" and another for the side
     string += "\n\t" + indentation + "Left Hand:\n" + lhs->stringify(indent_level + 2);
@@ -190,7 +198,7 @@ std::string PrimitiveAST::stringify(size_t indent_level) {
         case ValueType::FLOAT64:
             return indentation + "Float64: " + std::to_string(float64) + '\n';
         case ValueType::STRING:
-            return indentation + "String: \"" + u32tostring(string) + "\"\n";
+            return indentation + "String: \"" + string + "\"\n";
         default:
             return indentation + "Invalid\n";
     }

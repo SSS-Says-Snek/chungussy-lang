@@ -1,10 +1,10 @@
 #include <filesystem>
 
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/TargetRegistry.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/TargetParser/Host.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
@@ -50,7 +50,7 @@ void run_parse(std::vector<std::string>& args) {
     std::cout << "Lexing " << file_path << '\n';
 
     Context ctx{};
-    std::u32string source = read_source(file_path);
+    std::string source = read_source(file_path);
     Lexer lexer{source};
 
     std::vector<Token> tokens;
@@ -134,7 +134,7 @@ void run_parse(std::vector<std::string>& args) {
 
         llvm::TargetOptions options;
 
-        auto rm = llvm::Optional<llvm::Reloc::Model>();
+        auto rm = std::optional<llvm::Reloc::Model>();
         auto target_machine = target->createTargetMachine(target_triple, cpu, features, options, rm);
         
         ctx.module->setDataLayout(target_machine->createDataLayout());
@@ -166,8 +166,8 @@ void run_parse(std::vector<std::string>& args) {
         dest.flush();
         
         // IDK /shrug
-        system("clang++ $(llvm-config --cxxflags) src/library/prelude.cpp -Iinclude -c -o chungbuild/prelude.o");
-        system((std::string{"clang++ $(llvm-config --ldflags --libs) "} + output_filepath + " chungbuild/prelude.o -o chungbuild/output.out").c_str());
+        system("clang++ $(llvm-config-17 --cxxflags) src/library/prelude.cpp -Iinclude -c -o chungbuild/prelude.o");
+        system((std::string{"clang++ $(llvm-config-17 --ldflags --libs) "} + output_filepath + " chungbuild/prelude.o -o chungbuild/output.out").c_str());
     }
 }
 

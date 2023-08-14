@@ -22,23 +22,29 @@ public:
 
 class Lexer {
 public:
-    Lexer(const std::u32string& source);
+    Lexer(const std::string& source);
 
-    inline char32_t advance() {
+    inline char advance() {
         return source[cursor++];
     }
 
-    inline char32_t peek() {
+    inline char peek() {
         return source[cursor];
     }
 
-    inline std::vector<std::u32string> get_source_lines() {
+    inline std::vector<std::string> get_source_lines() {
         return source_lines;
+    }
+
+    inline Token make_token(TokenType type, size_t beg, size_t end) {
+        Token token{type, beg, end};
+        token.text = source.substr(beg, end - beg);
+        return token;
     }
 
     std::pair<std::vector<Token>, std::vector<LexException>> lex();
 private:
-    const std::u32string source;
-    std::vector<std::u32string> source_lines;
+    const std::string source;
+    std::vector<std::string> source_lines;
     size_t cursor;
 };

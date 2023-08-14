@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <functional>
 
 #include "llvm/ADT/APFloat.h"

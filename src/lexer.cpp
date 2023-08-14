@@ -5,21 +5,13 @@
 #include <vector>
 
 #include "chung/lexer.hpp"
-#include "chung/utf.hpp"
+// #include "chung/utf.hpp"
 
-#define HANDLE_OP(op_, op_name)                                                   \
+#define HANDLE_SIMPLE(op_, op_name)                                                   \
     case op_name:                                                                 \
-        value.op = op_;                                                           \
-        tokens.push_back(Token{TokenType::OPERATOR, value, cursor, cursor + 1});  \
+        tokens.push_back(make_token(op_, cursor, cursor + 1));                    \
         advance();                                                                \
         break;                                                                    \
-
-#define HANDLE_SYMBOL(symbol_, symbol_name)                                     \
-    case symbol_name:                                                           \
-        value.symbol = symbol_;                                                 \
-        tokens.push_back(Token{TokenType::SYMBOL, value, cursor, cursor + 1});  \
-        advance();                                                              \
-        break;                                                                  \
 
 #define HANDLE_ESCAPE_SEQUENCE(char_, actual_char) \
     case char_:                                    \
@@ -27,8 +19,8 @@
         advance();                                 \
         break;                                     \
 
-inline bool is_identifier_char(char32_t c) {
-    if (std::iswalpha(c) || c == '_') {
+inline bool is_identifier_char(char c) {
+    if (std::isalpha(c) || c == '_') {
         return true;
     }
     return false;
@@ -45,7 +37,7 @@ std::string LexException::write() {
     return string;
 }
 
-Lexer::Lexer(const std::u32string& source): source{source}, source_lines{}, cursor{0} {
+Lexer::Lexer(const std::string& source): source{source}, source_lines{}, cursor{0} {
     size_t start = 0;
     size_t end = 0;
 
@@ -67,8 +59,6 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                 advance();
             }
 
-            TokenVal value;
-
             if (peek() == '\0') {
                 tokens.push_back(Token{TokenType::EOF, cursor, cursor + 1});
                 break;
@@ -81,45 +71,41 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                     advance();
                 }
 
-                std::string identifier = u32tostring(source.substr(start, cursor - start));
+                std::string identifier = source.substr(start, cursor - start);
                 TokenType type;
 
                 if (is_keyword(identifier)) {
-                    type = TokenType::KEYWORD;
-
                     if (identifier == "def") {
-                        value.keyword = Keyword::DEF;
+                        type = TokenType::DEF;
                     } else if (identifier == "let") {
-                        value.keyword = Keyword::LET;
+                        type = TokenType::LET;
                     } else if (identifier == "__omg") {
-                        value.keyword = Keyword::__OMG;
+                        type = TokenType::__OMG;
                     }
                 } else {
                     type = TokenType::IDENTIFIER;
-                    value.identifier = identifier;
                 }
-                tokens.push_back(Token{type, value, start, cursor});
 
-            } else if (std::iswdigit(peek())) {
+                tokens.push_back(make_token(type, start, cursor));
+            } else if (std::isdigit(peek())) {
                 size_t start = cursor;
                 advance();
                 while (std::iswdigit(peek())) {
                     advance();
                 }
 
-                char32_t suffix = peek();
-                std::string token_string = u32tostring(source.substr(start, cursor - start));
+                char suffix = peek();
+                std::string token_string = source.substr(start, cursor - start);
                 TokenType type;
 
                 switch (suffix) {
                     case 'U' | 'u': // Unsigned
                         try {
-                            value.uint64 = std::stoull(token_string);
                             type = TokenType::UINT64;
                             advance();
                         } catch (...) {
                             // L
-                            tokens.push_back(Token{TokenType::INVALID, start, cursor});
+                            tokens.push_back(make_token(TokenType::INVALID, start, cursor));
                             throw LexException{"Value " + token_string + " too large to store in an uint64", start, cursor};
                         }
                         break;
@@ -130,13 +116,12 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                         while (std::iswdigit(peek())) {
                             advance();
                         }
-                        std::string float_string = token_string + u32tostring(source.substr(decimal_start, cursor - decimal_start));
+                        std::string float_string = token_string + source.substr(decimal_start, cursor - decimal_start);
 
                         try {
-                            value.float64 = std::stod(float_string);
                             type = TokenType::FLOAT64;
                         } catch (...) {
-                            tokens.push_back(Token{TokenType::INVALID, start, cursor});
+                            tokens.push_back(make_token(TokenType::INVALID, start, cursor));
                             throw LexException{"Value " + float_string + " too large to store in an float64", start, cursor};
                         }
                         break;
@@ -144,19 +129,18 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
 
                     default:
                         try {
-                            value.int64 = std::stoll(token_string);
                             type = TokenType::INT64;
                         } catch (...) {
                             // L
-                            tokens.push_back(Token{TokenType::INVALID, start, cursor});
+                            tokens.push_back(make_token(TokenType::INVALID, start, cursor));
                             throw LexException{"Value " + token_string + " too large to store in an int64", start, cursor};
                         }
                         break;
                 }
 
-                tokens.push_back(Token{type, value, start, cursor});
+                tokens.push_back(make_token(type, start, cursor));
             } else if (peek() == U'"') {
-                std::u32string string;
+                std::string string;
                 size_t start = cursor;
                 advance();
 
@@ -187,19 +171,18 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                 }
                 advance();
 
-                value.string = string;
-                tokens.push_back(Token{TokenType::STRING, value, start, cursor});
+                Token token{TokenType::STRING, start, cursor};
+                token.text = std::move(string);
+                tokens.push_back(token);
             } else {
                 switch (peek()) {
                     case '-':
                         advance();
                         if (peek() == '>') { // Arrow (->)
-                            value.symbol = Symbol::ARROW;
                             advance();
-                            tokens.push_back(Token{TokenType::SYMBOL, value, cursor - 2, cursor});
+                            tokens.push_back(make_token(TokenType::ARROW, cursor - 2, cursor));
                         } else { // Subtraction
-                            value.op = Operator::SUB;
-                            tokens.push_back(Token{TokenType::OPERATOR, value, cursor - 1, cursor});
+                            tokens.push_back(make_token(TokenType::SUB, cursor - 1, cursor));
                         }
                         break;
 
@@ -213,29 +196,28 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                                 }
                             }
                         } else { // Division
-                            value.op = Operator::DIV;
-                            tokens.push_back(Token{TokenType::OPERATOR, value, cursor - 1, cursor});
+                            tokens.push_back(make_token(TokenType::DIV, cursor - 1, cursor));
                         }
                         break;
 
-                    HANDLE_OP(Operator::ADD, '+')
-                    HANDLE_OP(Operator::MUL, '*')
-                    HANDLE_OP(Operator::ASSIGN, '=')
+                    HANDLE_SIMPLE(TokenType::ADD, '+')
+                    HANDLE_SIMPLE(TokenType::MUL, '*')
+                    HANDLE_SIMPLE(TokenType::ASSIGN, '=')
 
-                    HANDLE_SYMBOL(Symbol::OPEN_PARENTHESES, '(')
-                    HANDLE_SYMBOL(Symbol::CLOSE_PARENTHESES, ')')
-                    HANDLE_SYMBOL(Symbol::OPEN_BRACKETS, '[')
-                    HANDLE_SYMBOL(Symbol::CLOSE_BRACKETS, ']')
-                    HANDLE_SYMBOL(Symbol::OPEN_BRACES, '{')
-                    HANDLE_SYMBOL(Symbol::CLOSE_BRACES, '}')
+                    HANDLE_SIMPLE(TokenType::OPEN_PARENTHESES, '(')
+                    HANDLE_SIMPLE(TokenType::CLOSE_PARENTHESES, ')')
+                    HANDLE_SIMPLE(TokenType::OPEN_BRACKETS, '[')
+                    HANDLE_SIMPLE(TokenType::CLOSE_BRACKETS, ']')
+                    HANDLE_SIMPLE(TokenType::OPEN_BRACES, '{')
+                    HANDLE_SIMPLE(TokenType::CLOSE_BRACES, '}')
 
-                    HANDLE_SYMBOL(Symbol::DOT, '.')
-                    HANDLE_SYMBOL(Symbol::COMMA, ',')
-                    HANDLE_SYMBOL(Symbol::COLON, ':')
-                    HANDLE_SYMBOL(Symbol::SEMICOLON, ';')
+                    HANDLE_SIMPLE(TokenType::DOT, '.')
+                    HANDLE_SIMPLE(TokenType::COMMA, ',')
+                    HANDLE_SIMPLE(TokenType::COLON, ':')
+                    HANDLE_SIMPLE(TokenType::SEMICOLON, ';')
 
                     default:
-                        tokens.push_back(Token{TokenType::INVALID, value, cursor, cursor + 1});
+                        tokens.push_back(make_token(TokenType::INVALID, cursor, cursor + 1));
                         advance();
                 }
             }
@@ -250,7 +232,7 @@ std::pair<std::vector<Token>, std::vector<LexException>> Lexer::lex() {
                 }
                 column++;
             }
-            exception.source_line = u32tostring(source_lines[line - 1]);
+            exception.source_line = source_lines[line - 1];
             exception.line = line;
             exception.column = column;
 

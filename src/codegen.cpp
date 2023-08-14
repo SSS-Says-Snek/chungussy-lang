@@ -59,7 +59,7 @@ llvm::Value* BinaryExprAST::codegen(Context& ctx) {
 
     switch (op) {
         // TODO: Add type system (wow)
-        case Operator::ADD:
+        case TokenType::ADD:
             lhs_code->getType()->print(llvm::outs());
             return ctx.builder.CreateAdd(lhs_code, rhs_code);
     }

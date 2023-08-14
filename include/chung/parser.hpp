@@ -26,7 +26,7 @@ public:
 
 class Parser {
 public:
-    Parser(const std::vector<Token> tokens, const std::vector<std::u32string> source_lines, Context& ctx);
+    Parser(const std::vector<Token> tokens, const std::vector<std::string> source_lines, Context& ctx);
 
     inline Token current_token() {
         if (tokens_idx >= tokens.size()) {
@@ -61,13 +61,20 @@ public:
     // }
 
     inline ParseException push_exception(const std::string& exception_message, const Token& token) {
-        ParseException exception{exception_message, token, u32tostring(source_lines[token.line - 1])};
+        ParseException exception{exception_message, token, source_lines[token.line - 1]};
         exceptions.push_back(exception);
         return exception;
     }
 
     inline std::vector<ParseException> get_exceptions() {
         return exceptions;
+    }
+
+    inline void match_simple(TokenType type, const std::string& exception_str) {
+        if (current_token().type != type) {
+            throw push_exception(exception_str, current_token());
+        }
+        eat_token();
     }
 
     void synchronize();
@@ -95,7 +102,7 @@ public:
 
 private:
     std::vector<Token> tokens;
-    std::vector<std::u32string> source_lines;
+    std::vector<std::string> source_lines;
     Context& ctx;
 
     std::vector<ParseException> exceptions;

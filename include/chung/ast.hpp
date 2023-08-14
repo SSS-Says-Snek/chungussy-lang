@@ -80,11 +80,11 @@ public:
 
 class BinaryExprAST: public ExprAST {
 public:
-    Operator op;
+    TokenType op;
     std::shared_ptr<ExprAST> lhs;
     std::shared_ptr<ExprAST> rhs;
 
-    BinaryExprAST(Operator op, std::shared_ptr<ExprAST> lhs, std::shared_ptr<ExprAST> rhs):
+    BinaryExprAST(TokenType op, std::shared_ptr<ExprAST> lhs, std::shared_ptr<ExprAST> rhs):
         op{op}, lhs{std::move(lhs)}, rhs{std::move(rhs)} {}
     
     std::string stringify(size_t indent_level);
@@ -110,7 +110,7 @@ public:
         uint64_t uint64;
         double float64;
     };
-    std::u32string string;
+    std::string string;
 
     enum ValueType {INVALID, INT64, UINT64, FLOAT64, STRING} value_type;
 
@@ -118,7 +118,7 @@ public:
     PrimitiveAST(int64_t int64): int64{int64}, value_type{ValueType::INT64} {}
     PrimitiveAST(uint64_t uint64): uint64{uint64}, value_type{ValueType::UINT64} {}
     PrimitiveAST(double float64): float64{float64}, value_type{ValueType::FLOAT64} {}
-    PrimitiveAST(std::u32string string): string{std::move(string)}, value_type{ValueType::STRING} {}
+    PrimitiveAST(std::string string): string{std::move(string)}, value_type{ValueType::STRING} {}
 
     std::string stringify(size_t indent_level = 0);
     virtual llvm::Value* codegen(Context& ctx);
